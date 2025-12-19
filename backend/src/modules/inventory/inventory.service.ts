@@ -12,6 +12,7 @@ import {
 import { SellerListing } from '../../database/entities/seller-listing.entity';
 import { AdjustStockDto } from './dto/adjust-stock.dto';
 import { ReserveStockDto } from './dto/reserve-stock.dto';
+import { OrderItem } from '../../database/entities/order-item.entity';
 
 @Injectable()
 export class InventoryService {
@@ -246,5 +247,14 @@ private async deductWithManager(
     }
 
     return listing.stockQuantity - listing.reservedQuantity;
+  }
+
+  async getReservedItemsByOrder(orderId: string, manager: any) {
+    // Returns [{ listingId, quantity }]
+    return await manager.getRepository(OrderItem)
+      .createQueryBuilder('item')
+      .select(['item.listingId AS listingId', 'item.quantity AS quantity'])
+      .where('item.orderId = :orderId', { orderId })
+      .getRawMany();
   }
 }

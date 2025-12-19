@@ -1,0 +1,11 @@
+export enum EventType {
+  ORDER_CREATED = 'ORDER_CREATED',
+  PAYMENT_SUCCESS = 'PAYMENT_SUCCESS',
+  PAYMENT_FAILED = 'PAYMENT_FAILED',
+}
+
+export enum AggregateType {
+  ORDER = 'ORDER',
+  PAYMENT = 'PAYMENT',
+  INVENTORY = 'INVENTORY',
+}

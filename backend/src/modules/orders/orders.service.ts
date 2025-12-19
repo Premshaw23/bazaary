@@ -11,9 +11,11 @@ import { OrderItem } from '../../database/entities/order-item.entity';
 import { CreateOrderDto } from './dto/create-order.dto';
 import { UpdateOrderStateDto } from './dto/update-order-state.dto';
 import { OrderStateMachineService } from './order-state-machine.service';
-import { InventoryService } from '../inventory/inventory.service';
+import { EventBusService } from '../events/services/event-bus.service';
+import { EventType, AggregateType } from '../events/enums/event.enums';
 import { ListingsService } from '../listings/listings.service';
 import { ProductsService } from '../products/products.service';
+import { InventoryService } from '../inventory/inventory.service';
 
 @Injectable()
 export class OrdersService {
@@ -26,9 +28,10 @@ export class OrdersService {
     private orderItemsRepository: Repository<OrderItem>,
     private dataSource: DataSource,
     private stateMachine: OrderStateMachineService,
-    private inventoryService: InventoryService,
-    private listingsService: ListingsService,
-    private productsService: ProductsService,
+    private readonly eventBus: EventBusService,
+    private readonly listingsService: ListingsService,
+    private readonly productsService: ProductsService,
+    private readonly inventoryService: InventoryService,
   ) {}
 
 async create(buyerId: string, createOrderDto: CreateOrderDto): Promise<Order> {
@@ -41,48 +44,43 @@ async create(buyerId: string, createOrderDto: CreateOrderDto): Promise<Order> {
     const orderNumber = await this.generateOrderNumber();
     this.logger.log(`Generated order number: ${orderNumber}`);
 
-    // 2. Validate and fetch listings
-    this.logger.log('Fetching listings...');
+
+    // 2. Validate and fetch listings (derive snapshot from DB, not DTO)
+    this.logger.log('Fetching listings and products for snapshot...');
     const listingsData = await Promise.all(
       createOrderDto.items.map(async (item) => {
+        // Only fetch, do not call inventory
         const listing = await this.listingsService.findOne(item.listingId);
         const product = await this.productsService.findOne(listing.productId);
-
-        // Check stock availability
-        const availableStock = listing.stockQuantity - listing.reservedQuantity;
-        if (availableStock < item.quantity) {
-          throw new BadRequestException(
-            `Insufficient stock for ${product.name}. Available: ${availableStock}, Requested: ${item.quantity}`,
-          );
-        }
-
-        return { listing, product, quantity: item.quantity };
-      }),
+        return {
+          listing,
+          product,
+          quantity: item.quantity,
+        };
+      })
     );
-    this.logger.log('Listings fetched successfully');
+    this.logger.log('Listings and products fetched.');
 
     // 3. Verify all items are from same seller
     const sellerIds = [...new Set(listingsData.map((d) => d.listing.sellerId))];
     if (sellerIds.length > 1) {
       throw new BadRequestException('All items must be from the same seller');
     }
-
     const sellerId = sellerIds[0];
     this.logger.log(`Seller ID: ${sellerId}`);
 
-    // 4. Calculate amounts
+    // 4. Calculate amounts and build order item snapshots
     let subtotal = 0;
-    const items = listingsData.map((data) => {
-      const itemTotal = Number(data.listing.price) * data.quantity;
+    const items = listingsData.map(({ listing, product, quantity }) => {
+      const itemTotal = Number(listing.price) * quantity;
       subtotal += itemTotal;
-
       return {
-        listingId: data.listing.id,
-        productId: data.product.id,
-        productName: data.product.name,
-        productSku: data.product.sku,
-        quantity: data.quantity,
-        unitPrice: Number(data.listing.price),
+        listingId: listing.id,
+        productId: product.id,
+        productName: product.name,
+        productSku: product.sku,
+        quantity,
+        unitPrice: Number(listing.price),
         totalPrice: itemTotal,
       };
     });
@@ -114,7 +112,17 @@ async create(buyerId: string, createOrderDto: CreateOrderDto): Promise<Order> {
     const savedOrder = await manager.save(Order, order);
     this.logger.log(`Order saved: ${savedOrder.id}`);
 
-    // 6. Create order items
+    // Reserve inventory for each item (after order is saved)
+    this.logger.log('Reserving inventory for order items...');
+    for (const { listing, quantity } of listingsData) {
+      await this.inventoryService.reserve(
+        { listingId: listing.id, quantity, orderId: savedOrder.id },
+        buyerId,
+        manager
+      );
+    }
+
+    // 7. Create order items
     this.logger.log('Creating order items...');
     const orderItems = items.map((item) =>
       manager.create(OrderItem, {
@@ -126,26 +134,19 @@ async create(buyerId: string, createOrderDto: CreateOrderDto): Promise<Order> {
     await manager.save(OrderItem, orderItems);
     this.logger.log('Order items saved');
 
-    // 7. Reserve inventory
-    this.logger.log('Reserving inventory...');
-    for (const item of createOrderDto.items) {
-      this.logger.log(`Reserving ${item.quantity} units for listing ${item.listingId}`);
-      try {
-        await this.inventoryService.reserve(
-          {
-            listingId: item.listingId,
-            quantity: item.quantity,
-            orderId: savedOrder.id,
-          },
-          buyerId,
-          manager,
-        );
-        this.logger.log(`Reservation complete for ${item.listingId}`);
-      } catch (error) {
-        this.logger.error(`Reservation failed: ${error.message}`);
-        throw error;
-      }
-    }
+    // 8. Publish order created event
+    await this.eventBus.publish(
+      EventType.ORDER_CREATED,
+      AggregateType.ORDER,
+      savedOrder.id,
+      {
+        orderId: savedOrder.id,
+        buyerId,
+        sellerId,
+        items: createOrderDto.items,
+        totalAmount,
+      },
+    );
 
     this.logger.log(`Order created successfully: ${orderNumber}`);
 
@@ -233,6 +234,7 @@ async create(buyerId: string, createOrderDto: CreateOrderDto): Promise<Order> {
         order.carrier = updateDto.carrier;
       }
 
+
       // Update timestamps based on state
       switch (updateDto.state) {
         case OrderState.PAID:
@@ -250,13 +252,36 @@ async create(buyerId: string, createOrderDto: CreateOrderDto): Promise<Order> {
         case OrderState.CANCELLED:
           order.cancelledAt = new Date();
           order.cancellationReason = String(updateDto.reason);
+          // Release reserved inventory for each order item
+          const orderItems = await manager.find(OrderItem, { where: { orderId } });
+          for (const item of orderItems) {
+            await this.inventoryService.release(
+              item.listingId,
+              item.quantity,
+              orderId,
+              userId,
+              manager
+            );
+          }
           break;
       }
 
       const updatedOrder = await manager.save(Order, order);
 
-      // Handle side effects
-      await this.handleStateTransitionSideEffects(updatedOrder, updateDto.state, userId, manager);
+      // Publish event for state transition
+
+      // Ensure event type is exactly 'ORDER_CANCELLED' for handler compatibility
+      const eventType = updateDto.state === 'CANCELLED' ? 'ORDER_CANCELLED' : `ORDER_${updateDto.state}`;
+      await this.eventBus.publish(
+        eventType,
+        AggregateType.ORDER,
+        order.id,
+        {
+          orderId: order.id,
+          state: updateDto.state,
+          userId,
+        },
+      );
 
       this.logger.log(
         `Order ${order.orderNumber} transitioned to ${updateDto.state}`,
@@ -286,45 +311,7 @@ async create(buyerId: string, createOrderDto: CreateOrderDto): Promise<Order> {
     );
   }
 
-  private async handleStateTransitionSideEffects(
-  order: Order,
-  newState: OrderState,
-  userId: string,
-  manager?: any,  // ADD THIS
-): Promise<void> {
-  switch (newState) {
-    case OrderState.PAID:
-      // Deduct inventory (reserved → actual deduction)
-      const items = await this.getOrderItems(order.id);
-      for (const item of items) {
-        await this.inventoryService.deduct(
-          item.listingId,
-          item.quantity,
-          order.id,
-          userId,
-          manager,  // Pass manager if available
-        );
-      }
-      break;
 
-    case OrderState.CANCELLED:
-      // Release reserved inventory
-      const cancelledItems = await this.getOrderItems(order.id);
-      for (const item of cancelledItems) {
-        await this.inventoryService.release(
-          item.listingId,
-          item.quantity,
-          order.id,
-          userId,
-          manager,  // Pass manager if available
-        );
-      }
-      break;
-
-    default:
-      break;
-  }
-}
 
   private async generateOrderNumber(): Promise<string> {
     const year = new Date().getFullYear();
