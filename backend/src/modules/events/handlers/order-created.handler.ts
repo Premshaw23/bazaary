@@ -15,14 +15,17 @@ export class OrderCreatedHandler {
   async handle(event: EventEntity): Promise<void> {
     const { orderId, buyerId, items } = event.payload;
 
-    this.logger.log(`Handling ORDER_CREATED for order ${orderId}`);
-
-    // ⚠️ IDMPOTENCY RULE
-    // If this event is reprocessed, inventoryService.reserve()
-    // MUST be safe (you already built it that way)
+    this.logger.log(`Handling ORDER_CREATED for order ${orderId}, eventId: ${event.id}`);
 
     await this.dataSource.transaction(async (manager) => {
       for (const item of items) {
+        // Log reservedQuantity before reservation
+        const listingBefore = await manager.findOne('SellerListing', { where: { id: item.listingId } });
+        const beforeReserved = (listingBefore as any)?.reservedQuantity;
+        this.logger.log(
+          `Before reserve: listingId=${item.listingId}, reservedQuantity=${beforeReserved}`
+        );
+
         this.logger.log(
           `Reserving ${item.quantity} units for listing ${item.listingId}`,
         );
@@ -36,9 +39,16 @@ export class OrderCreatedHandler {
           buyerId,
           manager,
         );
+
+        // Log reservedQuantity after reservation
+        const listingAfter = await manager.findOne('SellerListing', { where: { id: item.listingId } });
+        const afterReserved = (listingAfter as any)?.reservedQuantity;
+        this.logger.log(
+          `After reserve: listingId=${item.listingId}, reservedQuantity=${afterReserved}`
+        );
       }
     });
 
-    this.logger.log(`Inventory reserved for order ${orderId}`);
+    this.logger.log(`Inventory reserved for order ${orderId}, eventId: ${event.id}`);
   }
 }

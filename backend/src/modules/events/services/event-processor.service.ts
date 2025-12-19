@@ -2,6 +2,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { EventRepository } from '../repositories/event.repository';
 import { OrderCreatedHandler } from '../handlers/order-created.handler';
 import { OrderCancelledHandler } from '../handlers/order-cancelled.handler';
+import { OrderPaidHandler } from '../handlers/order-paid.handler';
 
 @Injectable()
 export class EventProcessorService {
@@ -12,6 +13,7 @@ export class EventProcessorService {
     private readonly eventRepo: EventRepository,
     private readonly orderCreatedHandler: OrderCreatedHandler,
     private readonly orderCancelledHandler: OrderCancelledHandler,
+    private readonly orderPaidHandler: OrderPaidHandler,
   ) {}
 
   async process(): Promise<void> {
@@ -29,6 +31,9 @@ export class EventProcessorService {
             break;
           case 'ORDER_CANCELLED':
             await this.orderCancelledHandler.handle(event);
+            break;
+          case 'ORDER_PAID':
+            await this.orderPaidHandler.handle(event);
             break;
         }
 

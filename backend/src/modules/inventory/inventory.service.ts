@@ -54,8 +54,20 @@ private async reserveWithManager(
     throw new NotFoundException('Listing not found');
   }
 
-  const availableStock = listing.stockQuantity - listing.reservedQuantity;
+  // Idempotency: check if reservation for this order and listing already exists
+  const existingReservation = await manager.findOne('InventoryTransaction', {
+    where: {
+      listingId: reserveDto.listingId,
+      orderId: reserveDto.orderId,
+      type: 'RESERVED',
+    },
+  });
+  if (existingReservation) {
+    // Already reserved for this order and listing, do nothing
+    return existingReservation;
+  }
 
+  const availableStock = listing.stockQuantity - listing.reservedQuantity;
   if (availableStock < reserveDto.quantity) {
     throw new BadRequestException(
       `Insufficient stock. Available: ${availableStock}, Requested: ${reserveDto.quantity}`,
@@ -64,19 +76,17 @@ private async reserveWithManager(
 
   const previousReserved = listing.reservedQuantity;
   listing.reservedQuantity += reserveDto.quantity;
-
   await manager.save(listing);
 
-  const transaction = manager.create(InventoryTransaction, {
+  const transaction = manager.create('InventoryTransaction', {
     listingId: listing.id,
-    type: InventoryTransactionType.RESERVED,
+    type: 'RESERVED',
     quantity: reserveDto.quantity,
     orderId: reserveDto.orderId,
     previousQuantity: previousReserved,
     newQuantity: listing.reservedQuantity,
     createdBy: userId,
   });
-
   return await manager.save(transaction);
 }
   async release(
@@ -116,17 +126,19 @@ private async releaseWithManager(
   }
 
   const previousReserved = listing.reservedQuantity;
+  const previousStock = listing.stockQuantity;
   listing.reservedQuantity -= quantity;
+  listing.stockQuantity += quantity;
 
   await manager.save(listing);
 
   const transaction = manager.create(InventoryTransaction, {
     listingId: listing.id,
     type: InventoryTransactionType.RELEASED,
-    quantity: -quantity,
+    quantity: quantity, // positive, since stock is returned
     orderId,
-    previousQuantity: previousReserved,
-    newQuantity: listing.reservedQuantity,
+    previousQuantity: previousStock,
+    newQuantity: listing.stockQuantity,
     createdBy: userId,
   });
 
@@ -138,7 +150,7 @@ private async releaseWithManager(
   orderId: string,
   userId?: string,
   transactionManager?: any,
-): Promise<InventoryTransaction> {
+): Promise<InventoryTransaction | null> {
   if (transactionManager) {
     return await this.deductWithManager(transactionManager, listingId, quantity, orderId, userId);
   }
@@ -154,7 +166,20 @@ private async deductWithManager(
   quantity: number,
   orderId: string,
   userId?: string,
-): Promise<InventoryTransaction> {
+): Promise<InventoryTransaction | null> {
+  // Idempotency: check if STOCK_OUT transaction for this order/listing already exists
+  const existing = await manager.findOne(InventoryTransaction, {
+    where: {
+      listingId,
+      orderId,
+      type: InventoryTransactionType.STOCK_OUT,
+    },
+  });
+  if (existing) {
+    // Already deducted for this order/listing, NO-OP
+    return null;
+  }
+
   const listing = await manager.findOne(SellerListing, {
     where: { id: listingId },
     lock: { mode: 'pessimistic_write' },
@@ -176,7 +201,11 @@ private async deductWithManager(
   listing.stockQuantity -= quantity;
   listing.reservedQuantity -= quantity;
 
+
   await manager.save(listing);
+  // Debug log: print new stock and reserved quantities
+  // eslint-disable-next-line no-console
+  console.log(`[InventoryService] Listing ${listing.id} after deduction: stockQuantity=${listing.stockQuantity}, reservedQuantity=${listing.reservedQuantity}`);
 
   const transaction = manager.create(InventoryTransaction, {
     listingId: listing.id,
@@ -253,8 +282,8 @@ private async deductWithManager(
     // Returns [{ listingId, quantity }]
     return await manager.getRepository(OrderItem)
       .createQueryBuilder('item')
-      .select(['item.listingId AS listingId', 'item.quantity AS quantity'])
-      .where('item.orderId = :orderId', { orderId })
+      .select(['item.listing_id AS listingId', 'item.quantity AS quantity'])
+      .where('item.order_id = :orderId', { orderId })
       .getRawMany();
   }
 }

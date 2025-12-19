@@ -8,6 +8,7 @@ import { EventReplayService } from './services/event-replay.service';
 import { OrderCreatedHandler } from './handlers/order-created.handler';
 import { InventoryModule } from '../inventory/inventory.module';
 import { OrderCancelledHandler } from './handlers/order-cancelled.handler';
+import { OrderPaidHandler } from './handlers/order-paid.handler';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { OrderCancelledHandler } from './handlers/order-cancelled.handler';
     EventReplayService,
     OrderCreatedHandler,
     OrderCancelledHandler,
+    OrderPaidHandler, // 👈 ADD
   ],
   exports: [
     EventBusService,      // ✅ ONLY export the service

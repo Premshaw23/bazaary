@@ -6,11 +6,13 @@ import { Payment } from '../../database/entities/payment.entity';
 import { Order } from '../../database/entities/order.entity';
 import { MockPaymentGateway } from './gateways/mock.gateway';
 import { OrdersModule } from '../orders/orders.module';
+import { EventsModule } from '../events/events.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Payment, Order]),
     OrdersModule,
+    EventsModule,
   ],
   controllers: [PaymentsController],
   providers: [PaymentsService, MockPaymentGateway],

@@ -5,6 +5,7 @@ import { Payment, PaymentStatus, PaymentMethod } from '../../database/entities/p
 import { Order, OrderState } from '../../database/entities/order.entity';
 import { MockPaymentGateway } from './gateways/mock.gateway';
 import { OrdersService } from '../orders/orders.service';
+import { EventBusService } from '../events/services/event-bus.service';
 
 @Injectable()
 export class PaymentsService {
@@ -18,6 +19,7 @@ export class PaymentsService {
     private mockGateway: MockPaymentGateway,
     private ordersService: OrdersService,
     private dataSource: DataSource,
+    private readonly eventBus: EventBusService, // 👈 ADD
   ) {}
 
   async initiatePayment(
@@ -163,12 +165,23 @@ export class PaymentsService {
         this.logger.log(`Payment marked as SUCCESS`);
 
         // Update order to PAID
-
         this.logger.log(`Updating order ${payment.orderId} to PAID`);
         await this.ordersService.updateState(
           payment.orderId,
           { state: OrderState.PAID },
           userId,
+        );
+
+        // Publish ORDER_PAID event
+        await this.eventBus.publish(
+          'ORDER_PAID',
+          'ORDER',
+          payment.orderId,
+          {
+            orderId: payment.orderId,
+            userId: userId,
+            paymentId: payment.id,
+          },
         );
 
         this.logger.log(`Payment verified and order marked as PAID: ${paymentId}`);

@@ -68,8 +68,10 @@ echo "====================================================="
 
 
 
-BEFORE_RESPONSE=$(curl -s "$API_URL/inventory/$LISTING_ID/available")
-BEFORE=$(echo "$BEFORE_RESPONSE" | jq -r '.availableStock')
+
+# --- Check initial stock ---
+BEFORE_RESPONSE=$(curl -s "$API_URL/listings/$LISTING_ID")
+BEFORE=$(echo "$BEFORE_RESPONSE" | jq -r '.stockQuantity')
 if [[ -z "$BEFORE" || "$BEFORE" == "null" ]]; then
   echo "[ERROR] Could not fetch initial stock. Response: $BEFORE_RESPONSE"
   exit 1
@@ -87,8 +89,10 @@ echo "[DEBUG] Cancel response: $CANCEL_RESPONSE"
 
 sleep 4
 
-AFTER_RESPONSE=$(curl -s "$API_URL/inventory/$LISTING_ID/available")
-AFTER=$(echo "$AFTER_RESPONSE" | jq -r '.availableStock')
+
+# --- Check stock after cancel ---
+AFTER_RESPONSE=$(curl -s "$API_URL/listings/$LISTING_ID")
+AFTER=$(echo "$AFTER_RESPONSE" | jq -r '.stockQuantity')
 if [[ -z "$AFTER" || "$AFTER" == "null" ]]; then
   echo "[ERROR] Could not fetch stock after cancel. Response: $AFTER_RESPONSE"
   exit 1

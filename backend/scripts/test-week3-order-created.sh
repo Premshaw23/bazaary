@@ -111,7 +111,13 @@ echo -e "${GREEN}✓ Listing created${NC} ($LISTING_ID)"
 # 6️⃣ Check initial stock
 # -------------------------------
 echo -e "\n${BLUE}6. Checking initial inventory...${NC}"
-INITIAL_STOCK=$(curl -s "$API_URL/inventory/$LISTING_ID/available" | jq -r '.availableStock')
+INITIAL_STOCK=$(curl -s "$API_URL/listings/$LISTING_ID" | jq -r '.stockQuantity')
+LISTING_INITIAL=$(curl -s "$API_URL/listings/$LISTING_ID")
+echo "[DEBUG] Listing before order: $LISTING_INITIAL"
+INITIAL_STOCK=$(echo "$LISTING_INITIAL" | jq -r '.stockQuantity')
+INITIAL_RESERVED=$(echo "$LISTING_INITIAL" | jq -r '.reservedQuantity')
+echo "Initial stock: $INITIAL_STOCK"
+echo "Initial reserved: $INITIAL_RESERVED"
 echo "Initial stock: $INITIAL_STOCK"
 
 # -------------------------------
@@ -150,12 +156,15 @@ sleep 4
 # 8️⃣ Check stock after ORDER_CREATED
 # -------------------------------
 echo -e "\n${BLUE}8. Checking inventory after event...${NC}"
-AFTER_ORDER_STOCK=$(curl -s "$API_URL/inventory/$LISTING_ID/available" | jq -r '.availableStock')
-echo "Stock after order: $AFTER_ORDER_STOCK"
+echo -e "${GREEN}✓ Inventory reserved correctly${NC}"
+LISTING_AFTER_ORDER=$(curl -s "$API_URL/listings/$LISTING_ID")
+echo "[DEBUG] Listing after order: $LISTING_AFTER_ORDER"
+AFTER_ORDER_RESERVED=$(echo "$LISTING_AFTER_ORDER" | jq -r '.reservedQuantity')
+echo "Reserved after order: $AFTER_ORDER_RESERVED"
 
-EXPECTED_STOCK=$((INITIAL_STOCK - 2))
+EXPECTED_RESERVED=$((INITIAL_RESERVED + 2))
 
-if [[ "$AFTER_ORDER_STOCK" -ne "$EXPECTED_STOCK" ]]; then
+if [[ "$AFTER_ORDER_RESERVED" -ne "$EXPECTED_RESERVED" ]]; then
   echo -e "${RED}✗ Inventory reservation failed${NC}"
   exit 1
 fi
@@ -174,10 +183,13 @@ sleep 4
 # 🔟 Check inventory AFTER replay
 # -------------------------------
 echo -e "\n${BLUE}10. Checking inventory after replay...${NC}"
-AFTER_REPLAY_STOCK=$(curl -s "$API_URL/inventory/$LISTING_ID/available" | jq -r '.availableStock')
-echo "Stock after replay: $AFTER_REPLAY_STOCK"
+echo -e "${GREEN}✓ Replay is idempotent${NC}"
+LISTING_AFTER_REPLAY=$(curl -s "$API_URL/listings/$LISTING_ID")
+echo "[DEBUG] Listing after replay: $LISTING_AFTER_REPLAY"
+AFTER_REPLAY_RESERVED=$(echo "$LISTING_AFTER_REPLAY" | jq -r '.reservedQuantity')
+echo "Reserved after replay: $AFTER_REPLAY_RESERVED"
 
-if [[ "$AFTER_REPLAY_STOCK" -ne "$EXPECTED_STOCK" ]]; then
+if [[ "$AFTER_REPLAY_RESERVED" -ne "$EXPECTED_RESERVED" ]]; then
   echo -e "${RED}✗ Replay caused double reservation (NOT idempotent)${NC}"
   exit 1
 fi

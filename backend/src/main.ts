@@ -26,6 +26,16 @@ async function bootstrap() {
   const port = process.env.PORT || 3001;
   await app.listen(port);
 
+  // Start event processor loop
+  const eventProcessor = app.get(
+    require('./modules/events/services/event-processor.service').EventProcessorService
+  );
+  setInterval(() => {
+    eventProcessor.process().catch((err) => {
+      console.error('Event processor error:', err);
+    });
+  }, 2000); // every 2 seconds
+
   console.log(`🚀 Bazaary API running on http://localhost:${port}`);
 }
 bootstrap();
