@@ -39,6 +39,13 @@ export class WalletsController {
     return this.walletsService.getSummary(seller.id);
   }
 
+    // Wallet summary by sellerId (for admin or direct lookup)
+  @Get('summary/:sellerId')
+  @Roles(UserRole.ADMIN, UserRole.SELLER)
+  async walletSummaryBySellerId(@Param('sellerId') sellerId: string) {
+    return this.walletsService.getSummary(sellerId);
+  }
+
   @Post('unlock-for-test')
   @Roles(UserRole.ADMIN)
   async unlockForTest(@Body() body: { sellerId: string }) {
