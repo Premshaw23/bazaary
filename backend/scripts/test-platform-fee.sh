@@ -60,7 +60,7 @@ sleep 3
 
 # Check seller wallet summary
 echo -e "${GREEN}Checking seller wallet summary...${NC}"
-LEDGER_SUMMARY=$(curl -s -X GET "$API_URL/wallets/summary/$SELLER_ID" -H "Authorization: Bearer $SELLER_TOKEN")
+LEDGER_SUMMARY=$(curl -s -X GET "$API_URL/wallets/summary" -H "Authorization: Bearer $SELLER_TOKEN")
 echo "Seller wallet summary: $LEDGER_SUMMARY"
 
 # Check platform ledger (admin required)

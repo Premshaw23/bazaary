@@ -19,7 +19,8 @@ export class OrderPaidHandler {
   async handle(event: EventEntity): Promise<void> {
     const { orderId, userId, sellerId, amount } = event.payload;
 
-    this.logger.log(`Handling ORDER_PAID for order ${orderId}`);
+    this.logger.log(`[OrderPaidHandler] Handling ORDER_PAID for order ${orderId}, sellerId: ${sellerId}, amount: ${amount}, userId: ${userId}`);
+    this.logger.debug(`[OrderPaidHandler] Full event payload: ${JSON.stringify(event.payload)}`);
 
     await this.dataSource.transaction(async (manager) => {
       const reservedItems = await this.inventoryService.getReservedItemsByOrder(orderId, manager);

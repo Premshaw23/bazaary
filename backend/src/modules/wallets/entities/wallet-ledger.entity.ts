@@ -24,9 +24,9 @@ export enum LedgerStatus {
   PAID_OUT = 'PAID_OUT',
 }
 
-@Entity('wallet_ledger')
 @Index(['sellerId'])
-@Index(['orderId'])
+@Index(['orderId', 'reason'], { unique: true })
+@Entity('wallet_ledger')
 export class WalletLedger {
   @PrimaryGeneratedColumn('uuid')
   id: string;

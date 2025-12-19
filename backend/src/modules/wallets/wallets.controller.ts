@@ -1,4 +1,4 @@
-import { Controller, Post, Body, UseGuards, Req, Get, Inject, forwardRef } from '@nestjs/common';
+import { Controller, Post, Body, UseGuards, Req, Get, Inject, forwardRef, Query } from '@nestjs/common';
 import { WalletsService } from './wallets.service';
 import { PayoutRequestDto } from './dto/payout-request.dto';
 import { JwtAuthGuard } from '../../common/guards/jwt-auth.guard';
@@ -31,11 +31,12 @@ export class WalletsController {
   }
 
   // Wallet summary endpoint (GET)
-  @UseGuards(JwtAuthGuard)
-  @Get('summary/:sellerId')
-  async getSummary(@Param('sellerId') sellerId: string) {
-    // Optionally, restrict to self or admin
-    return await this.walletsService.getSummary(sellerId);
+   @Get('summary')
+  @Roles(UserRole.SELLER)
+  async walletSummary(@Req() req) {
+    const seller = await this.sellersService.findByUserId(req.user.userId);
+    if (!seller) throw new Error('Seller profile not found for this user');
+    return this.walletsService.getSummary(seller.id);
   }
 
   @Post('unlock-for-test')
@@ -54,6 +55,15 @@ export class WalletsController {
       console.error('Platform ledger error:', err);
       throw err;
     }
+  }
+
+
+  @Get('ledger')
+  @Roles(UserRole.SELLER)
+  async ledger(@Req() req, @Query('limit') limit?: string) {
+    const seller = await this.sellersService.findByUserId(req.user.userId);
+    if (!seller) throw new Error('Seller profile not found for this user');
+    return this.walletsService.getLedger(seller.id, Number(limit || 20));
   }
 
   @Post('admin/payout/approve')

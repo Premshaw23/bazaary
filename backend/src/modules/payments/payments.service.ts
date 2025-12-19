@@ -213,7 +213,7 @@ export class PaymentsService {
             userId: userId,
             paymentId: payment.id,
             sellerId: paidOrder?.sellerId,
-            amountAfterFee: paidOrder?.totalAmount, // Adjust if you have fee logic
+            amount: paidOrder?.totalAmount, // Use 'amount' to match handler
           },
         );
 

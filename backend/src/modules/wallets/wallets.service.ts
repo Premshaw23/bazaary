@@ -55,8 +55,17 @@ export class WalletsService {
     amount: number,
     reason: LedgerReason,
   ) {
-    await this.getOrCreateWallet(sellerId);
-
+    console.log('[creditLocked] Called with:', { sellerId, orderId, amount, reason });
+    // Extra debug: print all LOCKED and AVAILABLE ledger entries for this seller/order
+    const debugRows = await this.ledgerRepo.find({ where: { sellerId, orderId } });
+    console.log('[creditLocked][DEBUG] Existing ledger rows for seller/order:', debugRows);
+    const existing = await this.ledgerRepo.findOne({
+      where: { orderId, reason },
+    });
+    if (existing) {
+      console.log('[creditLocked] Existing ledger entry found, skipping:', existing);
+      return; // 🔒 replay-safe
+    }
     const entry = this.ledgerRepo.create({
       sellerId,
       orderId,
@@ -65,9 +74,13 @@ export class WalletsService {
       status: LedgerStatus.LOCKED,
       reason,
     });
-    console.log('[creditLocked] Creating LOCKED ledger entry:', entry);
-    await this.ledgerRepo.save(entry);
-    console.log('[creditLocked] LOCKED ledger entry saved for sellerId:', sellerId, 'orderId:', orderId, 'amount:', amount);
+    try {
+      const saved = await this.ledgerRepo.save(entry);
+      console.log('[creditLocked] LOCKED ledger entry saved:', saved);
+    } catch (err) {
+      console.error('[creditLocked] Error saving ledger entry:', err);
+      throw err;
+    }
   }
 
   async releaseToAvailable(orderId: string) {
@@ -173,5 +186,14 @@ export class WalletsService {
 
     async getPlatformLedger() {
       return this.ledgerRepo.find({ where: { sellerId: PLATFORM_USER_ID } });
+    }
+
+    // Wallet Ledger History API
+    async getLedger(sellerId: string, limit = 20) {
+      return this.ledgerRepo.find({
+        where: { sellerId },
+        order: { createdAt: 'DESC' },
+        take: limit,
+      });
     }
 }
