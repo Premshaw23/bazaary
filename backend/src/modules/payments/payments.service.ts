@@ -6,6 +6,7 @@ import { Order, OrderState } from '../../database/entities/order.entity';
 import { MockPaymentGateway } from './gateways/mock.gateway';
 import { OrdersService } from '../orders/orders.service';
 import { EventBusService } from '../events/services/event-bus.service';
+import { WalletsService } from '../wallets/wallets.service';
 
 @Injectable()
 export class PaymentsService {
@@ -20,6 +21,7 @@ export class PaymentsService {
     private ordersService: OrdersService,
     private dataSource: DataSource,
     private readonly eventBus: EventBusService, // 👈 ADD
+    private readonly walletsService: WalletsService, // <-- inject WalletsService
   ) {}
 
   async initiatePayment(
@@ -172,7 +174,20 @@ export class PaymentsService {
           userId,
         );
 
-        // Publish ORDER_PAID event
+
+        // Fetch order to get sellerId and amountAfterFee
+        const paidOrder = await this.ordersRepository.findOne({ where: { id: payment.orderId } });
+
+        // CREDIT seller's wallet with LOCKED funds (for payout after T+7)
+        if (paidOrder && paidOrder.sellerId && paidOrder.totalAmount) {
+          await this.walletsService.creditLocked(
+            paidOrder.sellerId,
+            paidOrder.id,
+            Number(paidOrder.totalAmount),
+            'Order paid',
+          );
+        }
+
         await this.eventBus.publish(
           'ORDER_PAID',
           'ORDER',
@@ -181,6 +196,8 @@ export class PaymentsService {
             orderId: payment.orderId,
             userId: userId,
             paymentId: payment.id,
+            sellerId: paidOrder?.sellerId,
+            amountAfterFee: paidOrder?.totalAmount, // Adjust if you have fee logic
           },
         );
 

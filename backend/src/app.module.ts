@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ScheduleModule } from '@nestjs/schedule';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MongooseModule } from '@nestjs/mongoose';
@@ -12,6 +13,7 @@ import { InventoryModule } from './modules/inventory/inventory.module';
 import { OrdersModule } from './modules/orders/orders.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { EventsModule } from './modules/events/events.module';
+import { WalletsModule } from './modules/wallets/wallets.module';
 
 @Module({
   imports: [
@@ -21,6 +23,7 @@ import { EventsModule } from './modules/events/events.module';
     }),
     TypeOrmModule.forRoot(postgresConfig),
     MongooseModule.forRoot(mongooseConfig.uri),
+    ScheduleModule.forRoot(),
     AuthModule,
     UsersModule,
     SellersModule,
@@ -30,6 +33,7 @@ import { EventsModule } from './modules/events/events.module';
     OrdersModule,
     PaymentsModule,
     EventsModule,
+    WalletsModule,
   ],
 })
 export class AppModule {}

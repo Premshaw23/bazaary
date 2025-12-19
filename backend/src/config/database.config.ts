@@ -8,6 +8,8 @@ import { Order } from '../database/entities/order.entity';
 import { OrderItem } from '../database/entities/order-item.entity';
 import { Payment } from '../database/entities/payment.entity';
 import { EventEntity } from '../database/entities/event.entity';
+import { SellerWallet } from '../modules/wallets/entities/seller-wallet.entity';
+import { WalletLedger } from '../modules/wallets/entities/wallet-ledger.entity';
 
 export const postgresConfig: TypeOrmModuleOptions = {
   type: 'postgres',
@@ -26,6 +28,8 @@ export const postgresConfig: TypeOrmModuleOptions = {
     OrderItem,
     Payment,
     EventEntity,
+    SellerWallet,
+    WalletLedger,
   ],
   synchronize: process.env.NODE_ENV === 'development',
   logging: process.env.NODE_ENV === 'development',

@@ -9,11 +9,13 @@ import { OrderCreatedHandler } from './handlers/order-created.handler';
 import { InventoryModule } from '../inventory/inventory.module';
 import { OrderCancelledHandler } from './handlers/order-cancelled.handler';
 import { OrderPaidHandler } from './handlers/order-paid.handler';
+import { WalletsModule } from '../wallets/wallets.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([EventEntity]), // ✅ REQUIRED
     InventoryModule,
+    WalletsModule,
   ],
   providers: [
     EventRepository,      // 🔥 THIS IS CRITICAL

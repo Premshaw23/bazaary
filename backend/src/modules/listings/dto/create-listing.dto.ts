@@ -1,3 +1,4 @@
+
 import { IsString, IsNumber, IsEnum, IsOptional, Min } from 'class-validator';
 import { ProductCondition } from '../../../database/entities/seller-listing.entity';
 

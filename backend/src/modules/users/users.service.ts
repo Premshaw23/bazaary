@@ -12,8 +12,13 @@ export class UsersService {
   ) {}
 
   async create(email: string, password: string, role: string): Promise<User> {
+    // Check if user already exists
+    const existing = await this.findByEmail(email);
+    if (existing) {
+      // You can throw a custom error or return a user-friendly message
+      throw new Error('User with this email already exists');
+    }
     const passwordHash = await bcrypt.hash(password, 10);
-
     const user = this.usersRepository.create({
       email,
       passwordHash,
