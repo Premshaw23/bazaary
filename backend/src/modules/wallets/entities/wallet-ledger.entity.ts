@@ -6,6 +6,13 @@ import {
   Index,
 } from 'typeorm';
 
+export enum LedgerReason {
+  ORDER_PAID = 'ORDER_PAID',
+  PLATFORM_FEE = 'PLATFORM_FEE',
+  PAYOUT = 'PAYOUT',
+  PAYOUT_REQUEST = 'PAYOUT_REQUEST',
+}
+
 export enum LedgerType {
   CREDIT = 'CREDIT',
   DEBIT = 'DEBIT',
@@ -24,8 +31,8 @@ export class WalletLedger {
   @PrimaryGeneratedColumn('uuid')
   id: string;
 
-  @Column({ type: 'uuid' })
-  sellerId: string;
+  @Column({ type: 'uuid', nullable: true })
+  sellerId: string | null;
 
   @Column({ type: 'uuid', nullable: true })
   orderId: string;
@@ -39,8 +46,8 @@ export class WalletLedger {
   @Column({ type: 'enum', enum: LedgerStatus })
   status: LedgerStatus;
 
-  @Column()
-  reason: string;
+  @Column({ type: 'enum', enum: LedgerReason })
+  reason: LedgerReason;
 
   @CreateDateColumn()
   createdAt: Date;

@@ -7,6 +7,7 @@ import { Roles } from '../../common/decorators/roles.decorator';
 import { UserRole } from 'src/database/entities/user.entity';
 import { Param } from '@nestjs/common';
 import { SellersService } from '../sellers/sellers.service';
+import { LedgerReason } from './entities/wallet-ledger.entity';
 
 @Controller('wallets')
 @UseGuards(JwtAuthGuard, RolesGuard)
@@ -44,6 +45,16 @@ export class WalletsController {
     return { status: 'UNLOCKED_FOR_TEST' };
   }
 
+  @Get('platform-ledger')
+  @Roles(UserRole.ADMIN)
+  async getPlatformLedger() {
+    try {
+      return await this.walletsService.getPlatformLedger();
+    } catch (err) {
+      console.error('Platform ledger error:', err);
+      throw err;
+    }
+  }
 
   @Post('admin/payout/approve')
   @Roles(UserRole.ADMIN)

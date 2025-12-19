@@ -1,4 +1,6 @@
 import { Injectable, Logger } from '@nestjs/common';
+import { PLATFORM_FEE_PERCENT } from '../../../config/platform.config';
+import { LedgerReason } from '../../wallets/entities/wallet-ledger.entity';
 import { DataSource } from 'typeorm';
 import { EventEntity } from '../../../database/entities/event.entity';
 import { InventoryService } from '../../inventory/inventory.service';
@@ -15,7 +17,7 @@ export class OrderPaidHandler {
   ) {}
 
   async handle(event: EventEntity): Promise<void> {
-    const { orderId, userId, sellerId, amountAfterFee } = event.payload;
+    const { orderId, userId, sellerId, amount } = event.payload;
 
     this.logger.log(`Handling ORDER_PAID for order ${orderId}`);
 
@@ -38,17 +40,28 @@ export class OrderPaidHandler {
 
     this.logger.log(`Inventory deducted for order ${orderId}`);
 
-    // Credit seller wallet (LOCKED)
-    if (sellerId && amountAfterFee) {
+    // Split amount for platform fee and seller net
+    if (sellerId && amount) {
+      const fee = Number((amount * PLATFORM_FEE_PERCENT) / 100);
+      const sellerAmount = amount - fee;
+
+      // Seller gets net amount
       await this.walletsService.creditLocked(
         sellerId,
         orderId,
-        amountAfterFee,
-        'ORDER_PAID',
+        sellerAmount,
+        LedgerReason.ORDER_PAID,
       );
-      this.logger.log(`Wallet credited (LOCKED) for seller ${sellerId}, order ${orderId}, amount ${amountAfterFee}`);
+      this.logger.log(`Wallet credited (LOCKED) for seller ${sellerId}, order ${orderId}, amount ${sellerAmount}`);
+
+      // Platform fee (tracked separately)
+      await this.walletsService.creditPlatformFee(
+        fee,
+        orderId,
+      );
+      this.logger.log(`Platform fee credited for order ${orderId}, amount ${fee}`);
     } else {
-      this.logger.warn(`Wallet NOT credited: sellerId or amountAfterFee missing in event payload for order ${orderId}`);
+      this.logger.warn(`Wallet NOT credited: sellerId or amount missing in event payload for order ${orderId}`);
     }
   }
 }

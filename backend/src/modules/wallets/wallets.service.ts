@@ -1,10 +1,10 @@
-
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { SellerWallet } from './entities/seller-wallet.entity';
-import { WalletLedger, LedgerStatus, LedgerType } from './entities/wallet-ledger.entity';
+import { WalletLedger, LedgerStatus, LedgerType, LedgerReason } from './entities/wallet-ledger.entity';
 
+const PLATFORM_USER_ID = '00000000-0000-0000-0000-000000000000'; // Define a constant for the platform user ID
 
 @Injectable()
 export class WalletsService {
@@ -53,7 +53,7 @@ export class WalletsService {
     sellerId: string,
     orderId: string,
     amount: number,
-    reason: string,
+    reason: LedgerReason,
   ) {
     await this.getOrCreateWallet(sellerId);
 
@@ -77,10 +77,24 @@ export class WalletsService {
     );
   }
 
+  async creditPlatformFee(amount: number, orderId: string) {
+    const ledgerEntry = this.ledgerRepo.create({
+      sellerId: PLATFORM_USER_ID, // platform-owned
+      orderId,
+      amount,
+      type: LedgerType.CREDIT,
+      status: LedgerStatus.AVAILABLE,
+      reason: LedgerReason.PLATFORM_FEE,
+    });
+    await this.ledgerRepo.save(ledgerEntry);
+  }
+
   async getSummary(sellerId: string) {
     try {
       const rows = await this.ledgerRepo.find({ where: { sellerId } });
-      if (!rows || rows.length === 0) {
+      // Ignore platform fee rows (sellerId = null)
+      const sellerRows = rows.filter(r => r.sellerId !== null);
+      if (!sellerRows || sellerRows.length === 0) {
         // Log and return a clear error if no ledger entries found
         console.warn(`[WalletsService] No ledger entries found for sellerId: ${sellerId}`);
         return { locked: 0, available: 0, message: 'No ledger entries found for this seller.' };
@@ -89,7 +103,7 @@ export class WalletsService {
       let locked = 0;
       let available = 0;
 
-      for (const r of rows) {
+      for (const r of sellerRows) {
         if (r.status === LedgerStatus.LOCKED) locked += Number(r.amount);
         if (r.status === LedgerStatus.AVAILABLE) available += Number(r.amount);
       }
@@ -146,7 +160,7 @@ export class WalletsService {
             amount: remaining,
             type: row.type,
             status: LedgerStatus.PAID_OUT,
-            reason: 'PAYOUT_REQUEST',
+            reason: LedgerReason.PAYOUT_REQUEST,
           }));
           remaining = 0;
         }
@@ -155,5 +169,9 @@ export class WalletsService {
       console.log('[requestPayout] Ledger rows AFTER payout:', after);
       // No separate debit entry needed; funds are now marked as paid out
       // Payout is now immediate after unlock
+    }
+
+    async getPlatformLedger() {
+      return this.ledgerRepo.find({ where: { sellerId: PLATFORM_USER_ID } });
     }
 }

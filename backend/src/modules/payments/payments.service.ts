@@ -7,6 +7,8 @@ import { MockPaymentGateway } from './gateways/mock.gateway';
 import { OrdersService } from '../orders/orders.service';
 import { EventBusService } from '../events/services/event-bus.service';
 import { WalletsService } from '../wallets/wallets.service';
+import { LedgerReason } from '../wallets/entities/wallet-ledger.entity';
+import { PLATFORM_FEE_PERCENT } from '../../config/platform.config';
 
 @Injectable()
 export class PaymentsService {
@@ -180,12 +182,26 @@ export class PaymentsService {
 
         // CREDIT seller's wallet with LOCKED funds (for payout after T+7)
         if (paidOrder && paidOrder.sellerId && paidOrder.totalAmount) {
+          const totalAmount = Number(paidOrder.totalAmount);
+          const fee = Math.floor(totalAmount * PLATFORM_FEE_PERCENT / 100);
+          const sellerAmount = totalAmount - fee;
+          this.logger.log(`[PLATFORM FEE DEBUG] Order total: ${totalAmount}, Fee: ${fee}, Seller amount: ${sellerAmount}`);
+
+          // Seller gets net amount
           await this.walletsService.creditLocked(
             paidOrder.sellerId,
             paidOrder.id,
-            Number(paidOrder.totalAmount),
-            'Order paid',
+            sellerAmount,
+            LedgerReason.ORDER_PAID,
           );
+          this.logger.log(`[PLATFORM FEE DEBUG] Seller ledger entry created: sellerId=${paidOrder.sellerId}, orderId=${paidOrder.id}, amount=${sellerAmount}`);
+
+          // Platform fee (tracked separately)
+          await this.walletsService.creditPlatformFee(
+            fee,
+            paidOrder.id,
+          );
+          this.logger.log(`[PLATFORM FEE DEBUG] Platform ledger entry created: orderId=${paidOrder.id}, amount=${fee}`);
         }
 
         await this.eventBus.publish(
