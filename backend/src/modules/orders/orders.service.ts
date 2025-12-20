@@ -183,7 +183,7 @@ async create(buyerId: string, createOrderDto: CreateOrderDto): Promise<Order> {
     return await query.getMany();
   }
 
-  async findOne(id: string): Promise<Order> {
+  async findOne(id: string): Promise<any> {
     const order = await this.ordersRepository.findOne({
       where: { id },
       relations: ['buyer', 'seller'],
@@ -191,6 +191,19 @@ async create(buyerId: string, createOrderDto: CreateOrderDto): Promise<Order> {
 
     if (!order) {
       throw new NotFoundException('Order not found');
+    }
+
+    // Fetch latest payment for this order (by createdAt DESC)
+    const payment = await this.dataSource.getRepository('Payment').findOne({
+      where: { orderId: id },
+      order: { createdAt: 'DESC' },
+    });
+    if (payment) {
+      (order as any).payment = {
+        id: payment.id,
+        gatewayTransactionId: payment.gatewayTransactionId,
+        status: payment.status,
+      };
     }
 
     return order;

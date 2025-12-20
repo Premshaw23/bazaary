@@ -40,16 +40,17 @@ export class OrdersController {
   @Get()
   async findAll(
     @Request() req,
+    @Query('sellerId') sellerId?: string,
+    @Query('buyerId') buyerId?: string,
     @Query('state') state?: OrderState,
   ) {
-    // Buyers see their orders, sellers see orders for them
-    const seller = await this.sellersService.findByUserId(req.user.userId);
-
     const filters: any = {};
 
-    if (seller) {
+    if (sellerId === 'me') {
+      const seller = await this.sellersService.findByUserId(req.user.userId);
+      if (!seller) throw new UnauthorizedException(`Not a seller`);
       filters.sellerId = seller.id;
-    } else {
+    } else if (buyerId === 'me') {
       filters.buyerId = req.user.userId;
     }
 

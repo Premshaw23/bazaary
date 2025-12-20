@@ -5,6 +5,7 @@ import { WalletLedger } from './entities/wallet-ledger.entity';
 import { WalletsService } from './wallets.service';
 import { WalletsController } from './wallets.controller';
 import { WalletCronService } from './wallet-cron.service';
+import { WalletCronController } from './wallet-cron.controller';
 import { SellersModule } from '../sellers/sellers.module';
 
 @Module({
@@ -13,7 +14,7 @@ import { SellersModule } from '../sellers/sellers.module';
     forwardRef(() => SellersModule),
   ],
   providers: [WalletsService, WalletCronService],
-  controllers: [WalletsController],
+  controllers: [WalletsController, WalletCronController],
   exports: [WalletsService, TypeOrmModule],
 })
 export class WalletsModule {}

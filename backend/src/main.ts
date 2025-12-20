@@ -34,7 +34,7 @@ async function bootstrap() {
     eventProcessor.process().catch((err) => {
       console.error('Event processor error:', err);
     });
-  }, 2000); // every 2 seconds
+  }, 4000); // every 2 seconds
 
   console.log(`🚀 Bazaary API running on http://localhost:${port}`);
 }

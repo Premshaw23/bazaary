@@ -1,3 +1,4 @@
+
 import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { InjectModel } from '@nestjs/mongoose';
@@ -19,11 +20,11 @@ export class ProductsService {
     private productCatalogModel: Model<ProductCatalogDocument>,
   ) {}
 
-  async create(createProductDto: CreateProductDto): Promise<any> {
+  async create(createProductDto: CreateProductDto & { sellerId?: string }): Promise<any> {
     try {
-      const { sku, name, brand, categoryId, ...catalogData } = createProductDto;
+      const { sku, name, brand, categoryId, sellerId, ...catalogData } = createProductDto;
 
-      this.logger.log(`Creating product with SKU: ${sku}`);
+      this.logger.log(`Creating product with SKU: ${sku} for seller: ${sellerId}`);
 
       // Step 1: Create in PostgreSQL
       const product = this.productsRepository.create({
@@ -31,6 +32,7 @@ export class ProductsService {
         name,
         brand,
         categoryId,
+        sellerId,
       });
 
       const savedProduct = await this.productsRepository.save(product);
@@ -93,6 +95,20 @@ export class ProductsService {
 
   async findOne(id: string): Promise<any> {
     return await this.getFullProduct(id);
+  }
+
+    async findBySeller(sellerId: string): Promise<any[]> {
+    // Validate sellerId is a valid UUID (defensive)
+    if (!sellerId || !/^[0-9a-fA-F-]{8}-[0-9a-fA-F-]{4}-[0-9a-fA-F-]{4}-[0-9a-fA-F-]{4}-[0-9a-fA-F-]{12}$/.test(sellerId)) {
+      this.logger?.error?.(`findBySeller: Invalid sellerId: ${sellerId}`);
+      throw new (require('@nestjs/common').BadRequestException)(`Invalid or missing sellerId: ${sellerId}`);
+    }
+    // Use query builder to filter by sellerId (if the column exists in DB)
+    const products = await this.productsRepository
+      .createQueryBuilder('product')
+      .where('product.seller_id = :sellerId', { sellerId })
+      .getMany();
+    return Promise.all(products.map((product) => this.getFullProduct(product.id)));
   }
 
   async update(id: string, updateProductDto: UpdateProductDto): Promise<any> {

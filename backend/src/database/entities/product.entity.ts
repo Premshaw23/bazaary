@@ -1,3 +1,4 @@
+
 import {
   Entity,
   PrimaryGeneratedColumn,
@@ -22,6 +23,9 @@ export class Product {
 
   @Column({ nullable: true })
   brand: string;
+  
+  @Column({ name: 'seller_id' })
+  sellerId: string;
 
   @Column({ name: 'category_id', nullable: true })
   @Index()

@@ -49,6 +49,12 @@ export class WalletLedger {
   @Column({ type: 'enum', enum: LedgerReason })
   reason: LedgerReason;
 
+  @Column({ type: 'decimal', precision: 12, scale: 2, nullable: true })
+  balanceAfter: number | null;
+
+  @Column({ type: 'varchar', length: 255, nullable: true })
+  reference: string | null;
+
   @CreateDateColumn()
   createdAt: Date;
 }

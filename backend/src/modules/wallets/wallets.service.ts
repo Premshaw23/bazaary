@@ -55,16 +55,24 @@ export class WalletsService {
     amount: number,
     reason: LedgerReason,
   ) {
-    console.log('[creditLocked] Called with:', { sellerId, orderId, amount, reason });
+    // console.log('[creditLocked] Called with:', { sellerId, orderId, amount, reason });
     // Extra debug: print all LOCKED and AVAILABLE ledger entries for this seller/order
     const debugRows = await this.ledgerRepo.find({ where: { sellerId, orderId } });
-    console.log('[creditLocked][DEBUG] Existing ledger rows for seller/order:', debugRows);
+    // console.log('[creditLocked][DEBUG] Existing ledger rows for seller/order:', debugRows);
     const existing = await this.ledgerRepo.findOne({
       where: { orderId, reason },
     });
     if (existing) {
-      console.log('[creditLocked] Existing ledger entry found, skipping:', existing);
+      // console.log('[creditLocked] Existing ledger entry found, skipping:', existing);
       return; // 🔒 replay-safe
+    }
+    // Calculate balanceAfter for this seller (locked + available)
+    const prevRows = await this.ledgerRepo.find({ where: { sellerId } });
+    let prevBalance = 0;
+    for (const r of prevRows) {
+      if (r.status === LedgerStatus.LOCKED || r.status === LedgerStatus.AVAILABLE) {
+        prevBalance += Number(r.amount);
+      }
     }
     const entry = this.ledgerRepo.create({
       sellerId,
@@ -73,6 +81,8 @@ export class WalletsService {
       type: LedgerType.CREDIT,
       status: LedgerStatus.LOCKED,
       reason,
+      balanceAfter: prevBalance + Number(amount),
+      reference: orderId || null,
     });
     try {
       const saved = await this.ledgerRepo.save(entry);
@@ -91,6 +101,14 @@ export class WalletsService {
   }
 
   async creditPlatformFee(amount: number, orderId: string) {
+    // Calculate balanceAfter for platform
+    const prevRows = await this.ledgerRepo.find({ where: { sellerId: PLATFORM_USER_ID } });
+    let prevBalance = 0;
+    for (const r of prevRows) {
+      if (r.status === LedgerStatus.LOCKED || r.status === LedgerStatus.AVAILABLE) {
+        prevBalance += Number(r.amount);
+      }
+    }
     const ledgerEntry = this.ledgerRepo.create({
       sellerId: PLATFORM_USER_ID, // platform-owned
       orderId,
@@ -98,6 +116,8 @@ export class WalletsService {
       type: LedgerType.CREDIT,
       status: LedgerStatus.AVAILABLE,
       reason: LedgerReason.PLATFORM_FEE,
+      balanceAfter: prevBalance + Number(amount),
+      reference: orderId || null,
     });
     await this.ledgerRepo.save(ledgerEntry);
   }
@@ -159,21 +179,26 @@ export class WalletsService {
 
       // Mark AVAILABLE rows as PAID_OUT up to the requested amount
       let remaining = amount;
+      let runningBalance = availableRows.reduce((sum, row) => sum + Number(row.amount), 0);
       for (const row of availableRows) {
         if (remaining <= 0) break;
         const rowAmount = Number(row.amount);
         if (rowAmount <= remaining) {
-          await this.ledgerRepo.update(row.id, { status: LedgerStatus.PAID_OUT });
+          runningBalance -= rowAmount;
+          await this.ledgerRepo.update(row.id, { status: LedgerStatus.PAID_OUT, balanceAfter: runningBalance, reference: 'PAYOUT' });
           remaining -= rowAmount;
         } else {
           // Split the row: mark part as PAID_OUT, part as AVAILABLE
           await this.ledgerRepo.update(row.id, { amount: rowAmount - remaining });
+          runningBalance -= remaining;
           await this.ledgerRepo.save(this.ledgerRepo.create({
             sellerId,
             amount: remaining,
             type: row.type,
             status: LedgerStatus.PAID_OUT,
             reason: LedgerReason.PAYOUT_REQUEST,
+            balanceAfter: runningBalance,
+            reference: 'PAYOUT',
           }));
           remaining = 0;
         }

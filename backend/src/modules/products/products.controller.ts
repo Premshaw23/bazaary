@@ -1,3 +1,5 @@
+
+import { Req } from '@nestjs/common';
 import {
   Controller,
   Get,
@@ -29,16 +31,32 @@ export class ProductsController {
   @Post()
   @UseGuards(JwtAuthGuard, RolesGuard)
   @Roles(UserRole.ADMIN, UserRole.SELLER)
-  async create(@Body() createProductDto: CreateProductDto) {
+  async create(@Body() createProductDto: CreateProductDto, @Req() req) {
     try {
-      this.logger.log(`Creating product: ${JSON.stringify(createProductDto)}`);
-      const result = await this.productsService.create(createProductDto);
+          const sellerId = req.user.userId;
+      this.logger.log(`Creating product: ${JSON.stringify(createProductDto)} for seller ${sellerId}`);
+      const result = await this.productsService.create({ ...createProductDto, sellerId });
       this.logger.log(`Product created: ${result.id}`);
       return result;
     } catch (error) {
       this.logger.error('Error in products controller:', error);
       throw error;
     }
+  }
+
+
+  @Get('my')
+  @UseGuards(JwtAuthGuard, RolesGuard)
+  @Roles(UserRole.SELLER)
+  async findMy(@Req() req) {
+    // Assumes req.user.id is the seller's user id
+    const sellerId = req.user.userId;
+    this.logger?.debug?.(`findMy: sellerId from req.user.id = ${sellerId}`);
+    // Validate sellerId is a valid UUID (simple regex check)
+    if (!sellerId || !/^[0-9a-fA-F-]{8}-[0-9a-fA-F-]{4}-[0-9a-fA-F-]{4}-[0-9a-fA-F-]{4}-[0-9a-fA-F-]{12}$/.test(sellerId)) {
+      throw new (require('@nestjs/common').BadRequestException)(`Invalid or missing sellerId in JWT payload: ${sellerId}`);
+    }
+    return this.productsService.findBySeller(sellerId);
   }
 
   @Get()
