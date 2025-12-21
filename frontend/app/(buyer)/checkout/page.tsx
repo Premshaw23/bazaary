@@ -2,12 +2,15 @@
 
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
-import { getCart, emptyCart } from "@/lib/cart/cart";
+import { emptyCart } from "@/lib/cart/cart";
 import { createOrder } from "@/lib/api/orders";
+import { useCart } from "@/lib/cart/context";
 
+import { useAuth } from "@/lib/auth/context";
 export default function CheckoutPage() {
   const router = useRouter();
-  const [cart, setCart] = useState<any[]>([]);
+  const { cart, clearCart, loading: cartLoading } = useCart();
+  const { user } = useAuth();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
@@ -22,13 +25,18 @@ export default function CheckoutPage() {
   });
 
   useEffect(() => {
-    const items = getCart();
-    if (items.length === 0) {
-      router.replace("/cart");
+    if (cartLoading) return;
+    console.log("[Checkout] user:", user);
+    console.log("[Checkout] cart:", cart);
+    if (!user || user.role !== "BUYER") {
+      router.replace("/auth/login");
       return;
     }
-    setCart(items);
-  }, [router]);
+    if (cart.length === 0) {
+      router.replace("/cart");
+    }
+  }, [cart, router, user, cartLoading]);
+
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
@@ -53,8 +61,7 @@ export default function CheckoutPage() {
       });
 
       // order successfully created → cart is no longer needed
-      emptyCart();
-
+      clearCart();
       router.replace(`/orders/${order.id}`);
     } catch (err: any) {
       setError(err.message || "Checkout failed");
@@ -63,6 +70,7 @@ export default function CheckoutPage() {
     }
   }
 
+  if (cartLoading) return <div className="p-8 text-center">Loading cart...</div>;
   if (cart.length === 0) return null;
 
   return (

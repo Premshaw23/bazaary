@@ -7,8 +7,14 @@ import {
   useMemo,
   useState,
 } from "react";
-import { decodeToken, JwtPayload } from "./decode";
-import { clearToken, getToken, setToken } from "./token";
+import { apiFetch } from "@/lib/api/client";
+
+
+type JwtPayload = {
+  id: string;
+  email: string;
+  role: "BUYER" | "SELLER" | "ADMIN";
+};
 
 type AuthContextType = {
   user: JwtPayload | null;
@@ -20,52 +26,49 @@ type AuthContextType = {
 
 const AuthContext = createContext<AuthContextType | null>(null);
 
-function isTokenValid(payload: JwtPayload) {
-  return payload.exp * 1000 > Date.now();
-}
+
 
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<JwtPayload | null>(null);
   const [isHydrated, setIsHydrated] = useState(false);
 
   useEffect(() => {
-    const token = getToken();
-
-    if (token) {
+    async function fetchUser() {
       try {
-        const decoded = decodeToken(token);
-        if (isTokenValid(decoded)) {
-          setUser(decoded);
-        } else {
-          clearToken();
-        }
+        const user = await apiFetch("/auth/me");
+        setUser(user as JwtPayload);
       } catch {
-        clearToken();
+        setUser(null);
+      } finally {
+        setIsHydrated(true);
       }
     }
-
-    setIsHydrated(true);
+    fetchUser();
   }, []);
 
-  function login(token: string) {
-    const decoded = decodeToken(token);
-    if (!isTokenValid(decoded)) {
-      clearToken();
-      throw new Error("Invalid token");
+  async function login() {
+    // After login, re-fetch user from backend /auth/me
+    setIsHydrated(false);
+    await new Promise((r) => setTimeout(r, 200)); // allow cookie to propagate
+    try {
+      const user = await apiFetch("/auth/me");
+      setUser(user as JwtPayload);
+    } catch {
+      setUser(null);
+    } finally {
+      setIsHydrated(true);
     }
-    setToken(token);
-    setUser(decoded);
   }
 
-  function logout() {
-    clearToken();
+  async function logout() {
+    await fetch("/api/auth/logout", { method: "POST", credentials: "include" });
     setUser(null);
   }
 
   const value = useMemo(
     () => ({
       user,
-      isAuthenticated: !!user && isTokenValid(user),
+      isAuthenticated: !!user,
       isHydrated,
       login,
       logout,

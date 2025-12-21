@@ -2,6 +2,8 @@ import { notFound } from "next/navigation";
 import { getProductById } from "@/lib/api/products";
 import { getListingsByProduct } from "@/lib/api/listings";
 import AddToCartButton from "@/components/AddToCartButton";
+import { cookies } from "next/headers";
+import { jwtDecode } from "jwt-decode";
 
 type Props = {
   params: {
@@ -14,10 +16,21 @@ export default async function ProductDetailPage({ params }: Props) {
 
   let product;
   let listings;
+  let userRole: string | null = null;
 
   try {
     product = await getProductById(productId);
     listings = await getListingsByProduct(productId);
+
+    // Try to get user role from cookie (server component)
+    const cookieStore = cookies();
+    const accessToken = (await cookieStore).get("access_token")?.value;
+    if (accessToken) {
+      try {
+        const decoded: any = jwtDecode(accessToken);
+        userRole = decoded.role || null;
+      } catch {}
+    }
   } catch {
     notFound();
   }
@@ -83,12 +96,16 @@ export default async function ProductDetailPage({ params }: Props) {
                   <span className="text-lg font-bold text-green-700">
                     ₹{listing.price}
                   </span>
-                  <AddToCartButton
-                    listingId={listing.id}
-                    productName={product.name}
-                    sellerName={listing.seller.businessName}
-                    price={listing.price}
-                  />
+                  {userRole === "SELLER" ? (
+                    <span className="text-gray-400 italic">Sellers cannot add to cart</span>
+                  ) : (
+                    <AddToCartButton
+                      listingId={listing.id}
+                      productName={product.name}
+                      sellerName={listing.seller.businessName}
+                      price={listing.price}
+                    />
+                  )}
                 </div>
               </div>
 

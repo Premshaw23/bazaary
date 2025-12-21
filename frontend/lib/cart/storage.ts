@@ -1,19 +1,21 @@
-const CART_KEY = "bazaary_cart_v1";
+function getCartKey(userId?: string) {
+  return userId ? `bazaary_cart_v1_${userId}` : "bazaary_cart_v1";
+}
 
-export function loadCart() {
+export function loadCart(userId?: string) {
   if (typeof window === "undefined") return [];
   try {
-    const raw = localStorage.getItem(CART_KEY);
+    const raw = localStorage.getItem(getCartKey(userId));
     return raw ? JSON.parse(raw) : [];
   } catch {
     return [];
   }
 }
 
-export function saveCart(cart: any[]) {
-  localStorage.setItem(CART_KEY, JSON.stringify(cart));
+export function saveCart(cart: any[], userId?: string) {
+  localStorage.setItem(getCartKey(userId), JSON.stringify(cart));
 }
 
-export function clearCart() {
-  localStorage.removeItem(CART_KEY);
+export function clearCart(userId?: string) {
+  localStorage.removeItem(getCartKey(userId));
 }

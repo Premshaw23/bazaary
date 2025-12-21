@@ -49,7 +49,9 @@ export default function WalletLedgerPage() {
               <td className="p-2 border">{entry.type}</td>
               <td className="p-2 border">₹{entry.amount}</td>
               <td className="p-2 border">
-                ₹{entry.balanceAfter}
+                {entry.balanceAfter === null || entry.balanceAfter === undefined || entry.balanceAfter === ''
+                  ? <span className="text-yellow-600">Pending</span>
+                  : <>₹{entry.balanceAfter}</>}
               </td>
               <td className="p-2 border">{entry.reference}</td>
             </tr>

@@ -1,21 +1,15 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import {
-  getCart,
-  updateQuantity,
-  removeFromCart,
-} from "@/lib/cart/cart";
+import { useCart } from "@/lib/cart/context";
+import { useAuth } from "@/lib/auth/context";
+
 
 export default function CartPage() {
-  const [cart, setCart] = useState<any[]>([]);
+  const { cart, updateQuantity, removeFromCart } = useCart();
+  const { user } = useAuth();
 
-  useEffect(() => {
-    setCart(getCart());
-  }, []);
-
-  function refresh() {
-    setCart(getCart());
+  if (!user || user.role !== "BUYER") {
+    return <div className="p-8 text-red-600">Only buyers can access the cart.</div>;
   }
 
   if (cart.length === 0) {
@@ -50,11 +44,7 @@ export default function CartPage() {
                 min={1}
                 value={item.quantity}
                 onChange={(e) => {
-                  updateQuantity(
-                    item.listingId,
-                    Number(e.target.value)
-                  );
-                  refresh();
+                  updateQuantity(item.listingId, Number(e.target.value));
                 }}
                 className="w-16 border px-2"
               />
@@ -62,7 +52,6 @@ export default function CartPage() {
               <button
                 onClick={() => {
                   removeFromCart(item.listingId);
-                  refresh();
                 }}
                 className="text-red-600"
               >

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect } from "react";
+import { CartProvider } from "@/lib/cart/context";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/context";
 
@@ -27,5 +28,5 @@ export default function BuyerLayout({
     return null;
   }
 
-  return <>{children}</>;
+  return <CartProvider>{children}</CartProvider>;
 }
