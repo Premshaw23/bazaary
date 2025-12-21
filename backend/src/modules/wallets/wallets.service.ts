@@ -15,6 +15,29 @@ export class WalletsService {
     private ledgerRepo: Repository<WalletLedger>,
   ) {}
 
+
+  async getPendingPayoutRequests() {
+    // Only return requests with a non-null sellerId
+    return this.ledgerRepo.find({
+      where: {
+        status: LedgerStatus.PENDING,
+        reason: LedgerReason.PAYOUT_REQUEST,
+      },
+      order: { createdAt: 'ASC' },
+    });
+  }
+
+  async getPendingPayoutRequestsForSeller(sellerId: string) {
+    return this.ledgerRepo.find({
+      where: {
+        status: LedgerStatus.PENDING,
+        reason: LedgerReason.PAYOUT_REQUEST,
+        sellerId,
+      },
+      order: { createdAt: 'ASC' },
+    });
+  }
+
   // For test only: unlock all LOCKED ledger entries for a seller
   async unlockForTest(sellerId: string) {
     try {
@@ -141,7 +164,7 @@ export class WalletsService {
         if (r.status === LedgerStatus.AVAILABLE) available += Number(r.amount);
       }
 
-      return { locked, available };
+      return { locked, available, sellerId };
     } catch (err) {
       console.error(`[WalletsService] Error in getSummary for sellerId ${sellerId}:`, err);
       throw err;
@@ -149,37 +172,23 @@ export class WalletsService {
   }
 
 
-    async approvePayout(sellerId: string) {
-      await this.ledgerRepo.update(
-        { sellerId, status: LedgerStatus.AVAILABLE },
-        { status: LedgerStatus.PAID_OUT },
-      );
-    }
 
-    async requestPayout(sellerId: string, amount: number) {
-
-      // Print all ledger rows for this seller before filtering
-      const allRows = await this.ledgerRepo.find({ where: { sellerId } });
-      console.log('[requestPayout] ALL ledger rows for seller before payout:', allRows);
+    async approvePayout(payoutRequestId: string) {
+      // Find the pending payout request
+      const payoutRequest = await this.ledgerRepo.findOne({ where: { id: payoutRequestId, status: LedgerStatus.PENDING } });
+      if (!payoutRequest) throw new Error('Payout request not found or already processed');
 
       // Find all AVAILABLE ledger rows for this seller
-      const before = allRows;
+      if (!payoutRequest.sellerId) throw new Error('Invalid payout request: sellerId is null');
       const availableRows = await this.ledgerRepo.find({
-        where: { sellerId, status: LedgerStatus.AVAILABLE },
+        where: { sellerId: payoutRequest.sellerId, status: LedgerStatus.AVAILABLE },
         order: { createdAt: 'ASC' },
       });
-      const totalAvailable = availableRows.reduce((sum, row) => sum + Number(row.amount), 0);
-      console.log('[requestPayout] AVAILABLE ledger rows:', availableRows);
-      console.log('[requestPayout] sellerId:', sellerId, 'requested:', amount, 'available:', totalAvailable);
-
-      if (amount > totalAvailable) {
-        const { BadRequestException } = require('@nestjs/common');
-        throw new BadRequestException('Insufficient available balance');
-      }
-
-      // Mark AVAILABLE rows as PAID_OUT up to the requested amount
-      let remaining = amount;
+      let remaining = Number(payoutRequest.amount);
       let runningBalance = availableRows.reduce((sum, row) => sum + Number(row.amount), 0);
+      if (remaining > runningBalance) throw new Error('Insufficient available balance at approval time');
+
+      // Deduct from available rows, mark as PAID_OUT
       for (const row of availableRows) {
         if (remaining <= 0) break;
         const rowAmount = Number(row.amount);
@@ -192,21 +201,46 @@ export class WalletsService {
           await this.ledgerRepo.update(row.id, { amount: rowAmount - remaining });
           runningBalance -= remaining;
           await this.ledgerRepo.save(this.ledgerRepo.create({
-            sellerId,
+            sellerId: payoutRequest.sellerId,
             amount: remaining,
             type: row.type,
             status: LedgerStatus.PAID_OUT,
-            reason: LedgerReason.PAYOUT_REQUEST,
+            reason: LedgerReason.PAYOUT,
             balanceAfter: runningBalance,
             reference: 'PAYOUT',
           }));
           remaining = 0;
         }
       }
-      const after = await this.ledgerRepo.find({ where: { sellerId } });
-      console.log('[requestPayout] Ledger rows AFTER payout:', after);
-      // No separate debit entry needed; funds are now marked as paid out
-      // Payout is now immediate after unlock
+      // Mark the payout request as PAID_OUT
+      payoutRequest.status = LedgerStatus.PAID_OUT;
+      payoutRequest.balanceAfter = runningBalance;
+      payoutRequest.reason = LedgerReason.PAYOUT;
+      await this.ledgerRepo.save(payoutRequest);
+    }
+
+    async requestPayout(sellerId: string, amount: number) {
+      // Find all AVAILABLE ledger rows for this seller
+      const availableRows = await this.ledgerRepo.find({
+        where: { sellerId, status: LedgerStatus.AVAILABLE },
+        order: { createdAt: 'ASC' },
+      });
+      const totalAvailable = availableRows.reduce((sum, row) => sum + Number(row.amount), 0);
+      if (amount > totalAvailable) {
+        const { BadRequestException } = require('@nestjs/common');
+        throw new BadRequestException('Insufficient available balance');
+      }
+
+      // Create a PENDING payout ledger entry (does not deduct from available yet)
+      await this.ledgerRepo.save(this.ledgerRepo.create({
+        sellerId,
+        amount,
+        type: LedgerType.DEBIT,
+        status: LedgerStatus.PENDING,
+        reason: LedgerReason.PAYOUT_REQUEST,
+        balanceAfter: null, // Will be set on approval
+        reference: 'PAYOUT_REQUEST',
+      }));
     }
 
     async getPlatformLedger() {

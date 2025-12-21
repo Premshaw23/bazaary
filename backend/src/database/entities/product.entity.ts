@@ -34,12 +34,16 @@ export class Product {
   @Column({ name: 'mongo_ref', nullable: true })
   mongoRef: string;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @Column({
+    name: 'created_at',
+    type: 'timestamptz',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt: Date;
 
-  @DeleteDateColumn({ name: 'deleted_at' })
+  @Column({ name: 'deleted_at', type: 'timestamptz', nullable: true })
   deletedAt: Date;
 }

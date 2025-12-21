@@ -33,6 +33,10 @@ export class EventEntity {
   @Column({ name: 'last_error', type: 'text', nullable: true })
   lastError: string;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @Column({
+    name: 'created_at',
+    type: 'timestamptz',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   createdAt: Date;
 }

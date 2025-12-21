@@ -21,6 +21,7 @@ export enum LedgerType {
 export enum LedgerStatus {
   LOCKED = 'LOCKED',
   AVAILABLE = 'AVAILABLE',
+  PENDING = 'PENDING',
   PAID_OUT = 'PAID_OUT',
 }
 
@@ -55,6 +56,9 @@ export class WalletLedger {
   @Column({ type: 'varchar', length: 255, nullable: true })
   reference: string | null;
 
-  @CreateDateColumn()
+  @Column({
+    type: 'timestamptz',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   createdAt: Date;
 }

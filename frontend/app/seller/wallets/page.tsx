@@ -5,6 +5,8 @@ import {
   getWalletSummary,
   requestPayout,
 } from "@/lib/api/wallet";
+import { getPendingPayoutRequests } from "@/lib/api/admin";
+import { getMyPendingPayoutRequests } from "@/lib/api/wallet";
 import Link from "next/link";
 
 export default function SellerWalletPage() {
@@ -12,10 +14,14 @@ export default function SellerWalletPage() {
   const [amount, setAmount] = useState("");
   const [error, setError] = useState("");
   const [loading, setLoading] = useState(false);
+  const [pending, setPending] = useState<any[]>([]);
 
   async function load() {
     const data = await getWalletSummary();
     setSummary(data);
+    // Fetch pending payout requests for this seller
+    const myPending = await getMyPendingPayoutRequests();
+    setPending(Array.isArray(myPending) ? myPending : []);
   }
 
   useEffect(() => {
@@ -74,11 +80,14 @@ export default function SellerWalletPage() {
         <h2 className="font-semibold mb-2">
           Request Payout
         </h2>
-
-
         <div className="mb-1 text-sm text-gray-600">
           Available for payout: <span className="font-semibold">₹{summary.available}</span>
         </div>
+        {pending.length > 0 && (
+          <div className="mb-2 text-yellow-700 bg-yellow-100 p-2 rounded">
+            You have a pending payout request awaiting admin approval.
+          </div>
+        )}
         <input
           className="border p-2 w-full mb-2"
           placeholder="Amount"
@@ -86,15 +95,14 @@ export default function SellerWalletPage() {
           onChange={e => setAmount(e.target.value)}
           min={1}
           type="number"
+          disabled={pending.length > 0}
         />
-
         {error && (
           <p className="text-red-600 mb-2">{error}</p>
         )}
-
         <button
           onClick={submitPayout}
-          disabled={loading || !amount || isNaN(Number(amount)) || Number(amount) <= 0 || (summary && Number(amount) > summary.available)}
+          disabled={loading || !amount || isNaN(Number(amount)) || Number(amount) <= 0 || (summary && Number(amount) > summary.available) || pending.length > 0}
           className="bg-green-600 text-white px-4 py-2 rounded disabled:opacity-50"
         >
           {loading ? "Submitting…" : "Request Payout"}

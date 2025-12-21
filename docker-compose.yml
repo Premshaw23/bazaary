@@ -1,3 +1,4 @@
+
 services:
   postgres:
     image: postgres:15-alpine
@@ -75,6 +76,24 @@ services:
       - "7700:7700"
     volumes:
       - meilisearch_data:/meili_data
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    container_name: bazaary-backend
+    environment:
+      - TZ=UTC
+      - DB_HOST=postgres
+      - DB_PORT=5432
+      - DB_USER=bazaary
+      - DB_PASSWORD=bazaary_secret
+      - DB_NAME=bazaary_db
+    ports:
+      - "4000:3001"
+    depends_on:
+      - postgres
+    networks:
+      - default
 
 volumes:
   postgres_data:

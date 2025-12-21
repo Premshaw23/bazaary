@@ -18,4 +18,5 @@ export const AppDataSource = new DataSource({
   entities: ['src/**/*.entity.ts'],
   synchronize: false, // Should be false in production
   logging: process.env.NODE_ENV === 'development',
+  timezone: 'Z', // Force UTC for all timestamps
 } as PostgresConnectionOptions);

@@ -65,6 +65,23 @@ export class WalletsController {
   }
 
 
+  // List all pending payout requests for admin
+  @Get('admin/payout/requests')
+  @Roles(UserRole.ADMIN)
+  async getPendingPayoutRequests() {
+    return await this.walletsService.getPendingPayoutRequests();
+  }
+
+  // Seller: get their own pending payout requests
+  @Get('payout/requests')
+  @Roles(UserRole.SELLER)
+  async getMyPendingPayoutRequests(@Req() req) {
+    const seller = await this.sellersService.findByUserId(req.user.userId);
+    if (!seller) throw new Error('Seller profile not found for this user');
+    return this.walletsService.getPendingPayoutRequestsForSeller(seller.id);
+  }
+
+
   @Get('ledger')
   @Roles(UserRole.SELLER)
   async ledger(@Req() req, @Query('limit') limit?: string) {
@@ -75,8 +92,8 @@ export class WalletsController {
 
   @Post('admin/payout/approve')
   @Roles(UserRole.ADMIN)
-  async approvePayout(@Body() body: { sellerId: string }) {
-    await this.walletsService.approvePayout(body.sellerId);
+  async approvePayout(@Body() body: { payoutRequestId: string }) {
+    await this.walletsService.approvePayout(body.payoutRequestId);
     return { status: 'PAYOUT_COMPLETED' };
   }
   

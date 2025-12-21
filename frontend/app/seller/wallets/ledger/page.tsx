@@ -33,7 +33,7 @@ export default function WalletLedgerPage() {
       <table className="w-full border">
         <thead>
           <tr className="bg-gray-100">
-            <th className="p-2 border">Date</th>
+            <th className="p-2 border">Date (IST)</th>
             <th className="p-2 border">Type</th>
             <th className="p-2 border">Amount</th>
             <th className="p-2 border">Balance After</th>
@@ -44,7 +44,7 @@ export default function WalletLedgerPage() {
           {ledger.map(entry => (
             <tr key={entry.id}>
               <td className="p-2 border">
-                {new Date(entry.createdAt).toLocaleString()}
+                {entry.createdAt ? new Date(entry.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' }) : ''}
               </td>
               <td className="p-2 border">{entry.type}</td>
               <td className="p-2 border">₹{entry.amount}</td>

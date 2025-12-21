@@ -16,9 +16,12 @@ export class SellerWallet {
   @Column({ type: 'uuid' })
   sellerId: string;
 
-  @CreateDateColumn()
+  @Column({
+    type: 'timestamptz',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   createdAt: Date;
 
-  @UpdateDateColumn()
+  @UpdateDateColumn({ type: 'timestamptz' })
   updatedAt: Date;
 }

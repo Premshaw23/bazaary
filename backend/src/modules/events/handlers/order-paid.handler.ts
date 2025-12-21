@@ -19,6 +19,16 @@ export class OrderPaidHandler {
   async handle(event: EventEntity): Promise<void> {
     const { orderId, userId, sellerId, amount } = event.payload;
 
+    // Edge case validation
+    if (typeof PLATFORM_FEE_PERCENT !== 'number' || isNaN(PLATFORM_FEE_PERCENT) || PLATFORM_FEE_PERCENT < 0) {
+      this.logger.error(`Invalid PLATFORM_FEE_PERCENT: ${PLATFORM_FEE_PERCENT}`);
+      return;
+    }
+    if (typeof amount !== 'number' || isNaN(amount) || amount <= 0) {
+      this.logger.warn(`Order amount is invalid or non-positive for order ${orderId}: ${amount}`);
+      return;
+    }
+
     // this.logger.log(`[OrderPaidHandler] Handling ORDER_PAID for order ${orderId}, sellerId: ${sellerId}, amount: ${amount}, userId: ${userId}`);
     // this.logger.debug(`[OrderPaidHandler] Full event payload: ${JSON.stringify(event.payload)}`);
 
@@ -42,10 +52,13 @@ export class OrderPaidHandler {
     this.logger.log(`Inventory deducted for order ${orderId}`);
 
     // Split amount for platform fee and seller net
-    if (sellerId && amount) {
+    if (sellerId) {
       const fee = Number((amount * PLATFORM_FEE_PERCENT) / 100);
       const sellerAmount = amount - fee;
-
+      if (fee < 0 || sellerAmount < 0) {
+        this.logger.error(`Calculated negative fee or seller amount for order ${orderId}: fee=${fee}, sellerAmount=${sellerAmount}`);
+        return;
+      }
       // Seller gets net amount
       await this.walletsService.creditLocked(
         sellerId,
@@ -62,7 +75,7 @@ export class OrderPaidHandler {
       );
       this.logger.log(`Platform fee credited for order ${orderId}, amount ${fee}`);
     } else {
-      this.logger.warn(`Wallet NOT credited: sellerId or amount missing in event payload for order ${orderId}`);
+      this.logger.warn(`Wallet NOT credited: sellerId missing in event payload for order ${orderId}`);
     }
   }
 }

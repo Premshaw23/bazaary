@@ -1,23 +1,22 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { approvePayout, getPlatformLedger } from "@/lib/api/admin";
+import { approvePayout, getPendingPayoutRequests } from "@/lib/api/admin";
 
 export default function AdminPayoutsPage() {
   const [payouts, setPayouts] = useState<any[]>([]);
 
   async function load() {
-    const ledger = await getPlatformLedger();
-    const ledgerArr = Array.isArray(ledger) ? ledger : [];
-    setPayouts(ledgerArr.filter((e: any) => e.type === "PAYOUT_REQUEST"));
+    const pending = await getPendingPayoutRequests();
+    setPayouts(Array.isArray(pending) ? pending : []);
   }
 
   useEffect(() => {
     load();
   }, []);
 
-  async function approve(id: string) {
-    await approvePayout(id);
+  async function approve(payoutRequestId: string) {
+    await approvePayout(payoutRequestId);
     load();
   }
 
@@ -27,7 +26,7 @@ export default function AdminPayoutsPage() {
       {payouts.length === 0 && <p>No pending payouts.</p>}
       {payouts.map(p => (
         <div key={p.id} className="border p-4 mb-2">
-          <p>Seller: {p.reference}</p>
+          <p>Seller: {p.sellerId}</p>
           <p>Amount: ₹{p.amount}</p>
           <button
             onClick={() => approve(p.id)}

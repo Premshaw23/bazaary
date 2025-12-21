@@ -130,9 +130,13 @@ export class Seller {
   @Column({ name: 'verified_badge', default: false })
   verifiedBadge: boolean;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @Column({
+    name: 'created_at',
+    type: 'timestamptz',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt: Date;
 }

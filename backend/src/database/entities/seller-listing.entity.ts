@@ -100,9 +100,13 @@ export class SellerListing {
   @Column({ name: 'processing_time_hours', default: 24 })
   processingTimeHours: number;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @Column({
+    name: 'created_at',
+    type: 'timestamptz',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt: Date;
 }

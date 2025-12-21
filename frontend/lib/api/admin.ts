@@ -1,3 +1,7 @@
+// Get all pending payout requests (admin)
+export function getPendingPayoutRequests() {
+  return apiFetch("/wallets/admin/payout/requests");
+}
 import { apiFetch } from "./client";
 
 /* Wallet */
@@ -8,10 +12,10 @@ export function getPlatformLedger(offset = 0, limit = 20) {
   });
 }
 
-export function approvePayout(payoutId: string) {
+export function approvePayout(payoutRequestId: string) {
   return apiFetch("/wallets/admin/payout/approve", {
     method: "POST",
-    body: JSON.stringify({ payoutId }),
+    body: JSON.stringify({ payoutRequestId }),
   });
 }
 
@@ -20,4 +24,9 @@ export function getAllOrders() {
   return apiFetch("/orders", {
     cache: "no-store",
   });
+}
+
+/* Sellers */
+export function getAllSellers() {
+  return apiFetch("/sellers");
 }

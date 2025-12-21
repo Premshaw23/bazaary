@@ -104,12 +104,16 @@ export class Payment {
   @Column({ name: 'failure_reason', type: 'text', nullable: true })
   failureReason: string;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @Column({
+    name: 'created_at',
+    type: 'timestamptz',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt: Date;
 
-  @Column({ name: 'completed_at', nullable: true })
+  @Column({ name: 'completed_at', type: 'timestamptz', nullable: true })
   completedAt: Date;
 }

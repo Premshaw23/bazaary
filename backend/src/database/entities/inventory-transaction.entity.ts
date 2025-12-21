@@ -61,6 +61,10 @@ export class InventoryTransaction {
   @Column({ name: 'created_by', nullable: true })
   createdBy: string;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @Column({
+    name: 'created_at',
+    type: 'timestamptz',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   createdAt: Date;
 }

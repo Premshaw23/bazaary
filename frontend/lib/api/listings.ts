@@ -9,6 +9,10 @@ export type Listing = {
     name: string;
     description?: string;
   };
+  seller?: {
+    id: string;
+    businessName: string;
+  };
 };
 
 export async function getMarketplaceListings() {

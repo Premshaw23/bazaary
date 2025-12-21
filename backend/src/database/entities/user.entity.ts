@@ -56,10 +56,14 @@ export class User {
   @Column({ name: 'phone_verified', default: false })
   phoneVerified: boolean;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @Column({
+    name: 'created_at',
+    type: 'timestamptz',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   createdAt: Date;
 
-  @UpdateDateColumn({ name: 'updated_at' })
+  @UpdateDateColumn({ name: 'updated_at', type: 'timestamptz' })
   updatedAt: Date;
 
   @Column({ name: 'last_login_at', nullable: true })

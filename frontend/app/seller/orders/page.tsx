@@ -32,6 +32,16 @@ export default function SellerOrdersPage() {
   if (loading) return <div className="p-8">Loading orders…</div>;
   if (error) return <div className="p-8 text-red-600">{error}</div>;
 
+  // Helper to format date in IST
+  function formatIST(dateString:String) {
+    if (!dateString) return '';
+    const date = new Date(dateString as string);
+    const istString = date.toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+    // Debug log
+    console.log('Raw date:', dateString, '| JS Date:', date, '| IST:', istString);
+    return istString;
+  }
+
   if (!orders || orders.length === 0) {
     return (
       <div className="p-8 text-gray-600">
@@ -59,7 +69,7 @@ export default function SellerOrdersPage() {
                   {order.orderNumber}
                 </p>
                 <p className="text-sm text-gray-500">
-                  {new Date(order.createdAt).toLocaleString()}
+                  {order.createdAt ? formatIST(order.createdAt) : ''}
                 </p>
               </div>
 

@@ -62,6 +62,10 @@ export class OrderItem {
   @Column({ name: 'fulfilled_quantity', default: 0 })
   fulfilledQuantity: number;
 
-  @CreateDateColumn({ name: 'created_at' })
+  @Column({
+    name: 'created_at',
+    type: 'timestamptz',
+    default: () => 'CURRENT_TIMESTAMP',
+  })
   createdAt: Date;
 }

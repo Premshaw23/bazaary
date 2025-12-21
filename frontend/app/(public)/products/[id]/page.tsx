@@ -55,32 +55,44 @@ export default async function ProductDetailPage({ params }: Props) {
           {listings.map((listing) => (
             <div
               key={listing.id}
-              className="border rounded-lg p-4 flex justify-between items-center"
+              className="border rounded-lg p-4 flex flex-col gap-2 bg-white shadow-sm"
             >
-              <div>
-                <p className="font-medium">
-                  {listing.seller.businessName}
-                </p>
-
-                <p className="text-sm text-gray-500">
-                  {listing.stockQuantity > 0
-                    ? "In stock"
-                    : "Out of stock"}
-                </p>
+              <div className="flex flex-col sm:flex-row sm:justify-between sm:items-center">
+                <div>
+                  <p className="font-medium text-lg">
+                    Seller: {listing.seller.businessName}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Listing ID: <span className="font-mono">{listing.id}</span>
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Seller ID: <span className="font-mono">{listing.seller.id}</span>
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    {listing.stockQuantity > 0 ? (
+                      <span className="text-green-600">In stock</span>
+                    ) : (
+                      <span className="text-red-600">Out of stock</span>
+                    )}
+                  </p>
+                  <p className="text-sm text-gray-500">
+                    Available Stock: <span className="font-semibold">{listing.stockQuantity}</span>
+                  </p>
+                </div>
+                <div className="flex items-center gap-4 mt-2 sm:mt-0">
+                  <span className="text-lg font-bold text-green-700">
+                    ₹{listing.price}
+                  </span>
+                  <AddToCartButton
+                    listingId={listing.id}
+                    productName={product.name}
+                    sellerName={listing.seller.businessName}
+                    price={listing.price}
+                  />
+                </div>
               </div>
 
-              <div className="flex items-center gap-4">
-                <span className="text-lg font-bold text-green-700">
-                  ₹{listing.price}
-                </span>
-
-                <AddToCartButton
-                  listingId={listing.id}
-                  productName={product.name}
-                  sellerName={listing.seller.businessName}
-                  price={listing.price}
-                />
-              </div>
+              // ...existing code...
             </div>
           ))}
         </div>
