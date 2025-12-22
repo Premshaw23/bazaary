@@ -25,61 +25,75 @@ export default function OrderDetailPage() {
   }, [id]);
 
   if (loading) {
-    return <div className="p-8">Loading order...</div>;
+    return <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-gray-50 to-gray-100"><span className="text-lg text-gray-500">Loading order...</span></div>;
   }
 
   if (error) {
     return (
-      <div className="p-8 text-red-600">
-        {error}
+      <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-gray-50 to-gray-100">
+        <div className="bg-white rounded-xl shadow-lg p-8 max-w-md text-red-600 text-center">{error}</div>
       </div>
     );
   }
 
   if (!order) return null;
 
+  // Status badge color
+  const statusColor = order.state === "PAID"
+    ? "bg-green-100 text-green-700"
+    : order.state === "PAYMENT_PENDING"
+    ? "bg-yellow-100 text-yellow-700"
+    : order.state === "CREATED"
+    ? "bg-blue-100 text-blue-700"
+    : "bg-gray-200 text-gray-600";
+
   return (
-    <div className="max-w-3xl mx-auto p-8">
-      <h1 className="text-2xl font-bold mb-4">
-        Order {order.orderNumber}
-      </h1>
+    <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-gray-50 to-gray-100">
+      <div className="bg-white rounded-xl shadow-md p-8 max-w-xl w-full">
+        <div className="flex flex-col md:flex-row md:items-center md:justify-between gap-4 mb-6">
+          <h1 className="text-2xl font-extrabold text-gray-900">Order #{order.orderNumber}</h1>
+          <span className={`px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wide ${statusColor}`}>
+            {order.state.replace(/_/g, ' ')}
+          </span>
+        </div>
+        <div className="flex items-center gap-8 mb-6">
+          <div>
+            <div className="text-gray-500 text-sm mb-1">Total</div>
+            <div className="text-2xl font-bold text-gray-900">₹{order.totalAmount}</div>
+          </div>
+        </div>
 
-      <div className="space-y-2">
-        <p>
-          <strong>Status:</strong> {order.state}
-        </p>
-        <p>
-          <strong>Total:</strong> ₹{order.totalAmount}
-        </p>
+        {order.state === "CREATED" && (
+          <div className="mt-6">
+            <a
+              href={`/orders/${order.id}/pay`}
+              className="inline-block w-full py-3 rounded-lg font-bold text-white text-lg bg-linear-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] text-center transition-all"
+            >
+              Pay Now
+            </a>
+          </div>
+        )}
+
+        {order.state === "PAYMENT_PENDING" && (
+          <div className="mt-6">
+            <a
+              href={`/orders/${order.id}/pay`}
+              className="inline-block w-full py-3 rounded-lg font-bold text-white text-lg bg-linear-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 hover:shadow-lg hover:scale-[1.02] active:scale-[0.98] text-center transition-all"
+            >
+              Continue Payment
+            </a>
+          </div>
+        )}
+
+        {order.state === "PAID" && (
+          <div className="flex flex-col items-center mt-8">
+            <svg className="w-12 h-12 text-green-600 mb-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M5 13l4 4L19 7" />
+            </svg>
+            <p className="text-green-700 text-lg font-semibold">Payment successful. Order is being processed.</p>
+          </div>
+        )}
       </div>
-
-      {order.state === "CREATED" && (
-        <div className="mt-6">
-          <a
-            href={`/orders/${order.id}/pay`}
-            className="inline-block bg-green-600 text-white px-6 py-2 rounded"
-          >
-            Pay Now
-          </a>
-        </div>
-      )}
-
-      {order.state === "PAYMENT_PENDING" && (
-        <div className="mt-6">
-          <a
-            href={`/orders/${order.id}/pay`}
-            className="inline-block bg-yellow-600 text-white px-6 py-2 rounded"
-          >
-            Continue Payment
-          </a>
-        </div>
-      )}
-
-      {order.state === "PAID" && (
-        <p className="text-green-600 mt-4">
-          Payment successful. Order is being processed.
-        </p>
-      )}
     </div>
   );
 }

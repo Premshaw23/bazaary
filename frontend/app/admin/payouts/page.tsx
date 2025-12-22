@@ -21,21 +21,27 @@ export default function AdminPayoutsPage() {
   }
 
   return (
-    <div className="max-w-5xl mx-auto p-8">
-      <h1 className="text-2xl font-bold mb-6">Payout Requests</h1>
-      {payouts.length === 0 && <p>No pending payouts.</p>}
-      {payouts.map(p => (
-        <div key={p.id} className="border p-4 mb-2">
-          <p>Seller: {p.sellerId}</p>
-          <p>Amount: ₹{p.amount}</p>
-          <button
-            onClick={() => approve(p.id)}
-            className="mt-2 bg-green-600 text-white px-4 py-1 rounded"
-          >
-            Approve
-          </button>
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="card-premium w-full max-w-2xl">
+        <h1 className="text-3xl font-extrabold mb-6">Payout Requests</h1>
+        {payouts.length === 0 && <div className="text-gray-500">No pending payouts.</div>}
+        <div className="space-y-4">
+          {payouts.map(p => (
+            <div key={p.id} className="border border-gray-100 rounded-xl p-4 bg-white shadow-sm flex flex-col sm:flex-row sm:items-center sm:justify-between">
+              <div>
+                <p className="text-gray-900 font-semibold">Seller: <span className="font-mono">{p.sellerId}</span></p>
+                <p className="text-gray-500">Amount: <span className="font-bold text-green-700">₹{p.amount}</span></p>
+              </div>
+              <button
+                onClick={() => approve(p.id)}
+                className="btn-premium bg-green-600 hover:bg-green-700 mt-3 sm:mt-0"
+              >
+                Approve
+              </button>
+            </div>
+          ))}
         </div>
-      ))}
+      </div>
     </div>
   );
 }

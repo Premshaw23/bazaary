@@ -20,66 +20,67 @@ export default async function ProductsPage() {
 
   if (listings.length === 0) {
     return (
-      <div className="p-8 text-gray-600">
-        No products available right now.
+      <div className="min-h-screen flex items-center justify-center bg-white">
+        <div className="card-premium text-gray-500">No products available right now.</div>
       </div>
     );
   }
 
   return (
-    <div className="max-w-7xl mx-auto px-6 py-8">
-      <h1 className="text-3xl font-bold mb-6">Marketplace</h1>
-
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-6">
-        {listings.map((listing) => (
-          <article
-            key={listing.id}
-            className="border rounded-lg p-4 bg-white shadow-sm hover:shadow-lg transition-shadow flex flex-col min-h-55"
-            tabIndex={0}
-            aria-label={listing.product.name}
-          >
-            {/* Placeholder for product image */}
-            <div className="w-full h-32 bg-gray-100 rounded flex items-center justify-center mb-3">
-              <span className="text-gray-300 text-4xl">🛒</span>
-            </div>
-            <h2 className="text-lg font-semibold mb-1 truncate" title={listing.product.name}>
-              {listing.product.name}
-            </h2>
-            {listing.product.description && (
-              <p className="text-sm text-gray-600 mb-1 line-clamp-2" title={listing.product.description}>
-                {listing.product.description}
-              </p>
-            )}
-            <div className="flex flex-wrap items-center gap-2 text-xs text-gray-500 mb-2">
-              {listing.seller && (
-                <span>Seller: <b>{listing.seller.businessName}</b></span>
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="w-full max-w-7xl px-4 py-10">
+        <h1 className="text-3xl font-extrabold mb-8">Marketplace</h1>
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-8">
+          {listings.map((listing) => (
+            <article
+              key={listing.id}
+              className="card-premium flex flex-col min-h-56 p-6 hover:shadow-lg transition-shadow"
+              tabIndex={0}
+              aria-label={listing.product.name}
+            >
+              {/* Placeholder for product image */}
+              <div className="w-full h-32 bg-gray-50 rounded-lg flex items-center justify-center mb-4">
+                <span className="text-gray-200 text-5xl">🛒</span>
+              </div>
+              <h2 className="text-lg font-bold mb-1 truncate text-gray-900" title={listing.product.name}>
+                {listing.product.name}
+              </h2>
+              {listing.product.description && (
+                <p className="text-sm text-gray-500 mb-2 line-clamp-2" title={listing.product.description}>
+                  {listing.product.description}
+                </p>
               )}
-              <span className="ml-auto">ID: <span className="font-mono">{listing.id}</span></span>
-            </div>
-            <div className="mt-auto flex items-center justify-between gap-2">
-              <span className="text-xl font-bold text-green-700">
-                ₹{listing.price}
-              </span>
-              <span
-                className={`px-2 py-0.5 rounded text-xs font-semibold ${
-                  listing.stockQuantity > 0
-                    ? "bg-green-100 text-green-700 border border-green-200"
-                    : "bg-red-100 text-red-700 border border-red-200"
-                }`}
-                aria-label={listing.stockQuantity > 0 ? "In stock" : "Out of stock"}
-              >
-                {listing.stockQuantity > 0 ? "In stock" : "Out of stock"}
-              </span>
-              <a
-                href={`/products/${listing.product.id}`}
-                className="ml-2 bg-blue-600 text-white px-4 py-1.5 rounded font-medium hover:bg-blue-700 focus:outline-none focus:ring-2 focus:ring-blue-400 transition"
-                tabIndex={0}
-              >
-                View
-              </a>
-            </div>
-          </article>
-        ))}
+              <div className="flex flex-wrap items-center gap-2 text-xs text-gray-400 mb-2">
+                {listing.seller && (
+                  <span>Seller: <b className="text-gray-700">{listing.seller.businessName}</b></span>
+                )}
+                <span className="ml-auto">ID: <span className="font-mono">{listing.id}</span></span>
+              </div>
+              <div className="mt-auto flex items-center justify-between gap-2">
+                <span className="text-xl font-extrabold text-green-700">
+                  ₹{listing.price}
+                </span>
+                <span
+                  className={`px-2 py-0.5 rounded text-xs font-semibold ${
+                    listing.stockQuantity > 0
+                      ? "bg-green-100 text-green-700 border border-green-200"
+                      : "bg-red-100 text-red-700 border border-red-200"
+                  }`}
+                  aria-label={listing.stockQuantity > 0 ? "In stock" : "Out of stock"}
+                >
+                  {listing.stockQuantity > 0 ? "In stock" : "Out of stock"}
+                </span>
+                <a
+                  href={`/products/${listing.product.id}`}
+                  className="btn-premium px-6 py-2 text-sm"
+                  tabIndex={0}
+                >
+                  View
+                </a>
+              </div>
+            </article>
+          ))}
+        </div>
       </div>
     </div>
   );

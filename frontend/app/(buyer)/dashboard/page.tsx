@@ -15,16 +15,17 @@ export default function DashboardPage() {
   }
 
   return (
-    <div className="p-8">
-      <h1 className="text-2xl font-bold">Dashboard</h1>
-      <p className="mt-2">Role: {user.role}</p>
-
-      <button
-        onClick={handleLogout}
-        className="mt-4 bg-red-600 text-white px-4 py-2 rounded"
-      >
-        Logout
-      </button>
+    <div className="min-h-screen flex items-center justify-center bg-white">
+      <div className="card-premium w-full max-w-lg text-center">
+        <h1 className="text-3xl font-extrabold mb-2">Dashboard</h1>
+        <p className="mb-6 text-gray-500">Role: <span className="font-semibold text-gray-900">{user.role}</span></p>
+        <button
+          onClick={handleLogout}
+          className="btn-premium w-full max-w-xs mx-auto"
+        >
+          Logout
+        </button>
+      </div>
     </div>
   );
 }

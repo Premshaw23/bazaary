@@ -7,6 +7,7 @@ import {
   getSellerOrders,
   SellerOrder,
 } from "@/lib/api/seller-orders";
+import CustomLoader from "@/components/CustomLoader";
 
 export default function SellerOrdersPage() {
   const { user } = useAuth();
@@ -29,7 +30,7 @@ export default function SellerOrdersPage() {
     load();
   }, []);
 
-  if (loading) return <div className="p-8">Loading orders…</div>;
+  if (loading) return <div className="p-8"><CustomLoader/></div>;
   if (error) return <div className="p-8 text-red-600">{error}</div>;
 
   // Helper to format date in IST

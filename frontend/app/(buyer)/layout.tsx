@@ -4,6 +4,7 @@ import { useEffect } from "react";
 import { CartProvider } from "@/lib/cart/context";
 import { useRouter } from "next/navigation";
 import { useAuth } from "@/lib/auth/context";
+import CustomLoader from "@/components/CustomLoader";
 
 export default function BuyerLayout({
   children,
@@ -21,7 +22,7 @@ export default function BuyerLayout({
   }, [isAuthenticated, isHydrated, router]);
 
   if (!isHydrated) {
-    return <div className="p-8">Loading...</div>;
+    return <div className="p-8"><CustomLoader/></div>;
   }
 
   if (!isAuthenticated) {
