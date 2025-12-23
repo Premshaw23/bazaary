@@ -47,5 +47,4 @@ export class ProductCatalog {
 
 export const ProductCatalogSchema = SchemaFactory.createForClass(ProductCatalog);
 
-ProductCatalogSchema.index({ productId: 1 });
 ProductCatalogSchema.index({ searchKeywords: 'text' });

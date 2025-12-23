@@ -10,7 +10,7 @@ export default function WalletLedgerPage() {
   useEffect(() => {
     async function load() {
       const data = await getWalletLedger();
-      setLedger(data);
+      setLedger(data ?? []);
       setLoading(false);
     }
     load();

@@ -21,8 +21,12 @@ export default function LoginPage() {
 
     try {
       const res = await loginApi(email, password);
-      login(res.access_token);
-      router.replace("/dashboard");
+      if (res && res.access_token) {
+        login(res.access_token);
+        router.replace("/dashboard");
+      } else {
+        throw new Error("Invalid login response");
+      }
     } catch (err: any) {
       setError(err.message || "Login failed");
     } finally {

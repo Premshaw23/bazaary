@@ -22,8 +22,12 @@ export default function RegisterPage() {
 
     try {
       const res = await registerApi(email, password, role);
-      login(res.access_token);
-      router.replace("/dashboard");
+      if (res && res.access_token) {
+        login(res.access_token);
+        router.replace("/dashboard");
+      } else {
+        setError("Registration failed: No access token returned");
+      }
     } catch (err: any) {
       setError(err.message || "Registration failed");
     } finally {

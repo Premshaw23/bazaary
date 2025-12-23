@@ -19,7 +19,7 @@ export default function SellerOrdersPage() {
     async function load() {
       try {
         const data = await getSellerOrders();
-        setOrders(data);
+        setOrders(data || []);
         
       } catch (err: any) {
         setError(err.message || "Failed to load orders");

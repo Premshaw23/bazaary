@@ -59,7 +59,11 @@ export default function CheckoutPage() {
 
       // order successfully created → redirect to payment page
       // Do NOT clear cart here; clear after payment
-      router.replace(`/orders/${order.id}/pay`);
+      if (order && order.id) {
+        router.replace(`/orders/${order.id}/pay`);
+      } else {
+        setError("Order creation failed. Please try again.");
+      }
     } catch (err: any) {
       setError(err.message || "Checkout failed");
     } finally {

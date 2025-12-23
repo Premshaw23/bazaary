@@ -353,11 +353,26 @@ export default async function ProductDetailPage({ params }: Props) {
 
                       {/* Price & Action */}
                       <div className="flex items-center gap-6 lg:flex-col lg:items-end">
+
                         <div className="text-right">
                           <p className="text-sm text-slate-500 mb-1 font-medium">Price</p>
-                          <p className="text-4xl font-black bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                            ₹{listing.price.toLocaleString()}
-                          </p>
+                          <div className="flex flex-col items-end">
+                            <div className="flex items-baseline gap-2">
+                              <span className="text-4xl font-black bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+                                ₹{listing.price.toLocaleString()}
+                              </span>
+                              {listing.compareAtPrice && Number(listing.compareAtPrice) > Number(listing.price) && (
+                                <span className="text-lg text-slate-400 line-through font-semibold">
+                                  ₹{Number(listing.compareAtPrice).toLocaleString()}
+                                </span>
+                              )}
+                            </div>
+                            {listing.compareAtPrice && Number(listing.compareAtPrice) > Number(listing.price) && (
+                              <span className="text-green-600 text-sm font-bold mt-1">
+                                {Math.round(((Number(listing.compareAtPrice) - Number(listing.price)) / Number(listing.compareAtPrice)) * 100)}% OFF
+                              </span>
+                            )}
+                          </div>
                         </div>
 
                         {userRole === "SELLER" ? (

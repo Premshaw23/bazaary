@@ -1,4 +1,4 @@
-
+import meiliClient from '../../lib/meilisearch.client';
 import { Req } from '@nestjs/common';
 import {
   Controller,
@@ -44,6 +44,15 @@ export class ProductsController {
     }
   }
 
+  @Get('search')
+  async searchProducts(@Query('q') q: string) {
+    if (!q || q.trim().length === 0) {
+      return [];
+    }
+    const index = meiliClient.index('products');
+    const result = await index.search(q, { limit: 20 });
+    return result.hits;
+  }
 
   @Get('my')
   @UseGuards(JwtAuthGuard, RolesGuard)

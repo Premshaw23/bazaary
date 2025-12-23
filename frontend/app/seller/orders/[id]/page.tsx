@@ -67,7 +67,7 @@ export default function SellerOrderDetailPage() {
       const data = await getSellerOrderById(id);
       setOrder(data);
       console.log("[DEBUG] Current user:", user);
-      console.log("[DEBUG] Order.sellerId:", data.sellerId);
+      // console.log("[DEBUG] Order.sellerId:", data.sellerId);
     } catch (err: any) {
       setError(err.message || "Failed to load order");
     } finally {

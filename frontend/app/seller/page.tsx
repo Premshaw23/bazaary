@@ -23,9 +23,9 @@ export default function SellerDashboardPage() {
           getSellerOrders(),
           getSellerProfile()
         ]);
-        setTotal(orders.length);
+        setTotal((orders?.length) || 0);
         setPending(
-          orders.filter(o =>
+          (orders ?? []).filter(o =>
             ["PAID", "CONFIRMED"].includes(o.state)
           ).length
         );

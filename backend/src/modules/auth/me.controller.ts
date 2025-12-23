@@ -9,7 +9,7 @@ export class MeController {
 
   @Get('me')
   async me(@Req() req: Request) {
-    console.log('Cookies received at /auth/me:', req.cookies);
+    // console.log('Cookies received at /auth/me:', req.cookies);
     const token = req.cookies['access_token'];
     if (!token) throw new UnauthorizedException('No token');
     try {

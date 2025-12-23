@@ -9,6 +9,7 @@ import { SellerListing } from '../../database/entities/seller-listing.entity';
 import { ProductCatalog, ProductCatalogDocument } from './schemas/product-catalog.schema';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
+import { indexProductToMeili, removeProductFromMeili } from './meili.helper';
 
 @Injectable()
 export class ProductsService {
@@ -54,7 +55,10 @@ export class ProductsService {
       savedProduct.mongoRef = savedCatalog._id.toString();
       await this.productsRepository.save(savedProduct);
 
-      return this.getFullProduct(savedProduct.id);
+      const fullProduct = await this.getFullProduct(savedProduct.id);
+      // Index in Meilisearch
+      await indexProductToMeili(fullProduct);
+      return fullProduct;
     } catch (error) {
       this.logger.error('Error creating product:', error);
       throw error;
@@ -100,7 +104,10 @@ export class ProductsService {
   }
 
   async findOne(id: string): Promise<any> {
-    return await this.getFullProduct(id);
+    const fullProduct = await this.getFullProduct(id);
+    // Update in Meilisearch
+    await indexProductToMeili(fullProduct);
+    return fullProduct;
   }
 
     async findBySeller(sellerId: string): Promise<any[]> {
@@ -156,6 +163,8 @@ export class ProductsService {
 
     await this.productsRepository.softRemove(product);
     await this.productCatalogModel.deleteOne({ productId: id });
+    // Remove from Meilisearch
+    await removeProductFromMeili(id);
   }
 
   private async getFullProduct(productId: string): Promise<any> {

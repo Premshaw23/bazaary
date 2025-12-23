@@ -24,7 +24,7 @@ const NAV_LINKS: Record<string, NavLink[]> = {
   ],
   SELLER: [
     { href: "/seller", label: "Dashboard", icon: LayoutDashboard },
-    { href: "/seller/products", label: "Products", icon: Package },
+    { href: "/seller/products", label: "Add Products", icon: Package },
     { href: "/seller/listings", label: "Listings", icon: Package },
     { href: "/seller/orders", label: "Orders", icon: Package },
     { href: "/seller/wallets", label: "Wallet", icon: Wallet },
