@@ -8,13 +8,13 @@ import { ProductCatalog, ProductCatalogSchema } from './schemas/product-catalog.
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Product]),
+    TypeOrmModule.forFeature([Product, require('../../database/entities/seller-listing.entity').SellerListing]),
     MongooseModule.forFeature([
       { name: ProductCatalog.name, schema: ProductCatalogSchema },
     ]),
   ],
   controllers: [ProductsController],
   providers: [ProductsService],
-  exports: [ProductsService],
+  exports: [ProductsService, MongooseModule],
 })
 export class ProductsModule {}

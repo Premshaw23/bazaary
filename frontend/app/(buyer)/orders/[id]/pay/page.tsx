@@ -58,7 +58,9 @@ export default function PaymentPage() {
     const start = Date.now();
     while (Date.now() - start < timeoutMs) {
       const order = await getOrderById(orderId);
-      if (order.state === expectedState) {
+      console.log(`[waitForOrderState] Polled order state:`, order?.state);
+      if (order && order.state === expectedState) {
+        console.log(`[waitForOrderState] Order reached expected state:`, expectedState);
         return order;
       }
       await new Promise((r) => setTimeout(r, 500));
@@ -71,6 +73,7 @@ export default function PaymentPage() {
     setError("");
     setLoading(true);
     try {
+      console.log("[handlePay] Starting payment for order:", order);
       if (order.state === "CREATED") {
         if (!method) {
           setError("Please select a payment method");
@@ -83,8 +86,8 @@ export default function PaymentPage() {
           method as PaymentMethod,
           idempotencyKey
         );
-        console.log("INIT PAYMENT RESPONSE", init);
-        if (init.status === "FAILED") {
+        console.log("[handlePay] INIT PAYMENT RESPONSE", init);
+        if (!init || init.status === "FAILED") {
           setError("Payment initiation failed. No money was deducted.");
           setLoading(false);
           return;
@@ -93,7 +96,9 @@ export default function PaymentPage() {
         await waitForOrderState(String(orderId), "PAYMENT_PENDING");
         // 3️⃣ Refetch order to get latest payment object
         const refreshedOrder = await getOrderById(String(orderId));
+        console.log("[handlePay] Refreshed order after PAYMENT_PENDING:", refreshedOrder);
         if (
+          !refreshedOrder || 
           refreshedOrder.state !== "PAYMENT_PENDING" ||
           !refreshedOrder.payment
         ) {
@@ -104,20 +109,24 @@ export default function PaymentPage() {
           refreshedOrder.payment.id,
           refreshedOrder.payment.gatewayTransactionId
         );
+        console.log("[handlePay] Payment verified, waiting for PAID state...");
         // 5️⃣ Wait for PAID
         await waitForOrderState(String(orderId), "PAID");
+        clearCart();
         // 6️⃣ Redirect
         router.replace(`/orders/${orderId}`);
       } else if (order.state === "PAYMENT_PENDING" && order.payment) {
         // Only verify, never re-initiate
         await verifyPayment(order.payment.id, order.payment.gatewayTransactionId);
+        console.log("[handlePay] Payment verified (PAYMENT_PENDING), waiting for PAID state...");
         await waitForOrderState(String(orderId), "PAID");
+        clearCart();
         router.replace(`/orders/${orderId}`);
       } else {
         setError(
           "Order is not in a payable state. Please refresh or check order status."
         );
-        console.log(order);
+        console.log("[handlePay] Order not in payable state:", order);
       }
     } catch (err: any) {
       setError(
@@ -125,6 +134,7 @@ export default function PaymentPage() {
           (err.errorBody && err.errorBody.message) ||
           "Payment error"
       );
+      console.error("[handlePay] Error:", err);
     } finally {
       setLoading(false);
     }
@@ -132,7 +142,10 @@ export default function PaymentPage() {
 
   useEffect(() => {
     if (order && order.state === "PAID") {
+      console.log("[PaymentPage] Order is PAID, clearing cart...");
       clearCart();
+    } else {
+      console.log("[PaymentPage] Order state:", order?.state);
     }
     // Only clear once per payment success
     // eslint-disable-next-line react-hooks/exhaustive-deps

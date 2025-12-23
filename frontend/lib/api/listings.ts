@@ -1,13 +1,14 @@
 import { apiFetch } from "./client";
 
+
+import type { Product, ProductCatalog } from "./products";
+
 export type Listing = {
   id: string;
   price: number;
   stockQuantity: number;
-  product: {
-    id: string;
-    name: string;
-    description?: string;
+  product: Product & {
+    catalog?: ProductCatalog | null;
   };
   seller?: {
     id: string;

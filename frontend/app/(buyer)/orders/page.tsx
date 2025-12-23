@@ -14,7 +14,7 @@ export default function BuyerOrdersPage() {
     async function loadOrders() {
       try {
         const data = await getBuyerOrders();
-        setOrders(data);
+        setOrders(data ?? []);
       } catch (err: any) {
         setError(err.message || "Failed to load orders");
       } finally {

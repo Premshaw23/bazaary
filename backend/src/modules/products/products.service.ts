@@ -5,6 +5,7 @@ import { InjectModel } from '@nestjs/mongoose';
 import { Repository } from 'typeorm';
 import { Model } from 'mongoose';
 import { Product } from '../../database/entities/product.entity';
+import { SellerListing } from '../../database/entities/seller-listing.entity';
 import { ProductCatalog, ProductCatalogDocument } from './schemas/product-catalog.schema';
 import { CreateProductDto } from './dto/create-product.dto';
 import { UpdateProductDto } from './dto/update-product.dto';
@@ -16,6 +17,8 @@ export class ProductsService {
   constructor(
     @InjectRepository(Product)
     private productsRepository: Repository<Product>,
+    @InjectRepository(SellerListing)
+    private listingsRepository: Repository<SellerListing>,
     @InjectModel(ProductCatalog.name)
     private productCatalogModel: Model<ProductCatalogDocument>,
   ) {}
@@ -66,6 +69,9 @@ export class ProductsService {
     try {
       const query = this.productsRepository.createQueryBuilder('product');
 
+      // Only return products that are not soft-deleted
+      query.andWhere('product.deleted_at IS NULL');
+
       if (filters?.categoryId) {
         query.andWhere('product.category_id = :categoryId', {
           categoryId: filters.categoryId,
@@ -103,10 +109,11 @@ export class ProductsService {
       this.logger?.error?.(`findBySeller: Invalid sellerId: ${sellerId}`);
       throw new (require('@nestjs/common').BadRequestException)(`Invalid or missing sellerId: ${sellerId}`);
     }
-    // Use query builder to filter by sellerId (if the column exists in DB)
+    // Use query builder to filter by sellerId and not soft-deleted
     const products = await this.productsRepository
       .createQueryBuilder('product')
       .where('product.seller_id = :sellerId', { sellerId })
+      .andWhere('product.deleted_at IS NULL')
       .getMany();
     return Promise.all(products.map((product) => this.getFullProduct(product.id)));
   }
@@ -144,13 +151,18 @@ export class ProductsService {
       throw new NotFoundException('Product not found');
     }
 
+    // Cascade delete all listings for this product
+    await this.listingsRepository.delete({ productId: id });
+
     await this.productsRepository.softRemove(product);
     await this.productCatalogModel.deleteOne({ productId: id });
   }
 
   private async getFullProduct(productId: string): Promise<any> {
+
+    const { IsNull } = require('typeorm');
     const product = await this.productsRepository.findOne({
-      where: { id: productId },
+      where: { id: productId, deletedAt: IsNull() },
     });
 
     if (!product) {
