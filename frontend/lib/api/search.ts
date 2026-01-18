@@ -20,11 +20,12 @@ export interface SearchResponse {
   estimatedTotalHits?: number;
 }
 
-export const searchProducts = async (query: string, category?: string): Promise<SearchResponse> => {
+export const searchProducts = async (query: string, category?: string, options?: RequestInit): Promise<SearchResponse> => {
   const searchParams = new URLSearchParams();
   if (query) searchParams.append('q', query);
   if (category) searchParams.append('category', category);
   
-  const response = await apiFetch<SearchResponse>(`/search?${searchParams.toString()}`);
+  const response = await apiFetch<SearchResponse>(`/search?${searchParams.toString()}`, options);
   return response || { hits: [] };
 };
+

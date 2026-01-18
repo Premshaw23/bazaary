@@ -42,7 +42,7 @@ export default function Home() {
             </motion.div>
 
             <motion.h1 variants={itemVariants} className="text-5xl md:text-7xl font-display font-extrabold leading-[1.1] text-slate-900">
-              The Future of <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-accent">Digital Commerce</span>
+              The Future of <span className="z-100 text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-brand-500">Digital Commerce</span>
             </motion.h1>
 
             <motion.p variants={itemVariants} className="text-xl text-slate-600 leading-relaxed max-w-xl">

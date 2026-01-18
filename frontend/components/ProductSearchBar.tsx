@@ -46,22 +46,29 @@ export default function ProductSearchBar({
       return;
     }
 
+    const controller = new AbortController();
     const timeoutId = setTimeout(async () => {
       if (!query.trim()) return;
 
       setLoading(true);
       setError("");
       try {
-        const data = await searchProducts(query);
+        const data = await searchProducts(query, undefined, { signal: controller.signal });
         if (onResults) onResults(data.hits || []);
       } catch (err: any) {
-        setError(err.message || "Search error");
+        if (err.name !== 'AbortError') {
+          setError(err.message || "Search error");
+        }
       } finally {
         setLoading(false);
       }
     }, 500);
 
-    return () => clearTimeout(timeoutId);
+    return () => {
+      clearTimeout(timeoutId);
+      controller.abort();
+    };
+
   }, [query, redirectOnSubmit]);
 
   async function handleSearch(e: React.FormEvent) {
@@ -101,7 +108,7 @@ export default function ProductSearchBar({
             value={query}
             onChange={e => setQuery(e.target.value)}
             placeholder="Search..."
-            className={`w-full bg-transparent border-0 text-slate-900 placeholder:text-slate-400 focus:ring-0 font-medium pl-3 pr-24 md:pr-32 ${compact ? 'h-10 text-base' : 'h-14 text-lg md:text-xl'}`}
+            className={`w-full bg-transparent border-0 text-slate-900 placeholder:text-slate-400 focus:ring-0 outline-none font-medium pl-3 pr-24 md:pr-32 ${compact ? 'h-10 text-base' : 'h-14 text-lg md:text-xl'}`}
             autoFocus={!compact && !redirectOnSubmit}
           />
           <div className="absolute right-1.5 md:right-2">

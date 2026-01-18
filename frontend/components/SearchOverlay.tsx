@@ -41,14 +41,19 @@ export default function SearchOverlay({ isOpen, onClose }: { isOpen: boolean; on
 
     // Debounce search
     useEffect(() => {
+        const controller = new AbortController();
+
         const timer = setTimeout(async () => {
             if (query.trim().length > 1) {
                 setLoading(true);
                 try {
-                    const res = await searchProducts(query);
+                    const res = await searchProducts(query, undefined, { signal: controller.signal });
                     setResults(res.hits);
-                } catch (e) {
-                    console.error(e);
+                } catch (e: any) {
+
+                    if (e.name !== 'AbortError') {
+                        console.error(e);
+                    }
                 } finally {
                     setLoading(false);
                 }
@@ -57,7 +62,10 @@ export default function SearchOverlay({ isOpen, onClose }: { isOpen: boolean; on
             }
         }, 300);
 
-        return () => clearTimeout(timer);
+        return () => {
+            clearTimeout(timer);
+            controller.abort();
+        };
     }, [query]);
 
     const handleSelectProduct = (productId: string) => {
@@ -104,7 +112,7 @@ export default function SearchOverlay({ isOpen, onClose }: { isOpen: boolean; on
                                 <Search className="pointer-events-none absolute left-4 top-4 h-6 w-6 text-slate-400" />
                                 <input
                                     type="text"
-                                    className="h-16 w-full border-0 bg-transparent pl-14 pr-12 text-slate-900 placeholder:text-slate-400 focus:ring-0 text-lg font-medium"
+                                    className="h-16 w-full border-0 bg-transparent pl-14 pr-12 text-slate-900 placeholder:text-slate-400 focus:ring-0 focus:outline-none text-lg font-medium"
                                     placeholder="Search for anything..."
                                     value={query}
                                     onChange={(e) => setQuery(e.target.value)}
@@ -196,12 +204,14 @@ export default function SearchOverlay({ isOpen, onClose }: { isOpen: boolean; on
                                                             <Image
                                                                 src={product.images[0].url}
                                                                 alt={product.name}
-                                                                fill
-                                                                className="object-cover group-hover:scale-105 transition-transform duration-300"
+                                                                width={56}
+                                                                height={56}
+                                                                className="object-cover group-hover:scale-105 transition-transform duration-300 h-full w-full"
                                                             />
                                                         ) : (
                                                             <ShoppingBag className="h-6 w-6 text-slate-300 absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2" />
                                                         )}
+
                                                     </div>
                                                     <div className="flex-auto min-w-0">
                                                         <div className="flex items-center justify-between gap-2">

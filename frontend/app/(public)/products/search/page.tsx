@@ -2,6 +2,9 @@
 import ProductSearchBar from "@/components/ProductSearchBar";
 import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
+import { searchProducts } from "@/lib/api/search";
+import Image from "next/image";
+
 
 export default function ProductSearchPage() {
   const [results, setResults] = useState<any[]>([]);
@@ -10,22 +13,33 @@ export default function ProductSearchPage() {
   const [selectedImages, setSelectedImages] = useState<{ [key: number]: number }>({});
   const searchParams = useSearchParams();
 
-  // On mount, if q param exists, search
+  // On mount or when URL params change, search
   useEffect(() => {
     const q = searchParams.get("q") || "";
-    if (q.trim()) {
-      setLoading(true);
-      setError("");
-      fetch(`/api/products/search?q=${encodeURIComponent(q)}`)
-        .then(res => {
-          if (!res.ok) throw new Error("Search failed");
-          return res.json();
-        })
-        .then(data => setResults(data))
-        .catch(err => setError(err.message || "Search error"))
-        .finally(() => setLoading(false));
+    if (!q.trim()) {
+      setResults([]);
+      return;
     }
+
+    const controller = new AbortController();
+    setLoading(true);
+    setError("");
+
+    searchProducts(q, undefined, { signal: controller.signal })
+      .then(data => {
+        setResults(data.hits || []);
+      })
+      .catch(err => {
+        if (err.name !== 'AbortError') {
+          setError(err.message || "Search error");
+        }
+      })
+      .finally(() => setLoading(false));
+
+    return () => controller.abort();
+
   }, [searchParams]);
+
 
   const handleThumbnailClick = (productId: number, imageIndex: number) => {
     setSelectedImages(prev => ({ ...prev, [productId]: imageIndex }));
@@ -88,11 +102,15 @@ export default function ProductSearchPage() {
                 {product.images && product.images.length > 0 && (
                   <div className="relative bg-linear-to-br from-slate-50 to-slate-100 p-6">
                     <div className="aspect-square relative overflow-hidden rounded-xl bg-white">
-                      <img
+                      <Image
                         src={product.images[currentImageIndex].url}
                         alt={product.name}
-                        className="w-full h-full object-contain transition-transform duration-500 group-hover:scale-105"
+                        fill
+                        priority={results.indexOf(product) < 6}
+                        sizes="(max-width: 768px) 100vw, (max-width: 1200px) 50vw, 33vw"
+                        className="object-contain transition-transform duration-500 group-hover:scale-105"
                       />
+
 
                       {/* Video Badge */}
                       {product.videos && product.videos.length > 0 && (

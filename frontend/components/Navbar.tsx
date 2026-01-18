@@ -233,10 +233,9 @@ export default function Navbar() {
 
             {/* Desktop Auth Section */}
             <div className="hidden lg:flex items-center gap-3">
-              {/* Search Trigger - Premium Fake Input */}
               <button
                 onClick={() => setSearchOpen(true)}
-                className="hidden md:flex items-center gap-3 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-xl transition-all w-64 group border border-transparent hover:border-slate-300"
+                className="hidden md:flex items-center gap-3 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-xl transition-all w-64 group border border-transparent hover:border-slate-300 focus:outline-none"
               >
                 <SearchIcon size={18} className="text-slate-400 group-hover:text-brand-600 transition-colors" />
                 <span className="text-sm font-medium">Search products...</span>
@@ -383,12 +382,14 @@ export default function Navbar() {
       </header>
 
       {/* Mobile Menu Overlay */}
-      {mobileOpen && (
-        <div
-          className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 lg:hidden animate-in fade-in duration-200"
-          onClick={() => setMobileOpen(false)}
-        />
-      )}
+      {
+        mobileOpen && (
+          <div
+            className="fixed inset-0 bg-black/20 backdrop-blur-sm z-50 lg:hidden animate-in fade-in duration-200"
+            onClick={() => setMobileOpen(false)}
+          />
+        )
+      }
 
       {/* Mobile Menu */}
       <aside
