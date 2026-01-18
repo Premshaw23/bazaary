@@ -8,13 +8,22 @@
     "start": "next start"
   },
   "dependencies": {
+    "@headlessui/react": "^2.2.9",
+    "@hookform/resolvers": "^5.2.2",
     "axios": "^1.13.2",
+    "clsx": "^2.1.1",
+    "framer-motion": "^12.26.2",
     "jwt-decode": "^4.0.0",
     "lucide-react": "^0.562.0",
     "next": "16.0.10",
     "react": "19.2.1",
     "react-dom": "19.2.1",
+    "react-hook-form": "^7.71.1",
     "react-query": "^3.39.3",
+    "socket.io-client": "^4.8.3",
+    "sonner": "^2.0.7",
+    "tailwind-merge": "^3.4.0",
+    "zod": "^4.3.5",
     "zustand": "^5.0.9"
   },
   "devDependencies": {

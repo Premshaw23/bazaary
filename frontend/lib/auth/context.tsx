@@ -46,13 +46,18 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     fetchUser();
   }, []);
 
-  async function login() {
+  async function login(token: string) {
     // After login, re-fetch user from backend /auth/me
     setIsHydrated(false);
-    await new Promise((r) => setTimeout(r, 200)); // allow cookie to propagate
+    // Allow cookie to propogate
+    await new Promise((r) => setTimeout(r, 200));
     try {
       const user = await apiFetch("/auth/me");
-      setUser(user as JwtPayload);
+      if (user) {
+        setUser(user as JwtPayload);
+      } else {
+        throw new Error("User not found");
+      }
     } catch {
       setUser(null);
     } finally {

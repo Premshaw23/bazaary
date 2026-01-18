@@ -6,11 +6,13 @@ import { MeController } from './me.controller';
 import { AuthService } from './auth.service';
 import { UsersModule } from '../users/users.module';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { QueueModule } from '../queue/queue.module';
 
 @Module({
   imports: [
     UsersModule,
     PassportModule,
+    QueueModule,
     JwtModule.register({
       secret: process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production',
       signOptions: { expiresIn: '7d' },

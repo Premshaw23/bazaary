@@ -3,6 +3,7 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { User } from '../../database/entities/user.entity';
 import * as bcrypt from 'bcrypt';
+import * as crypto from 'crypto';
 
 @Injectable()
 export class UsersService {
@@ -42,5 +43,58 @@ export class UsersService {
 
   async validatePassword(user: User, password: string): Promise<boolean> {
     return await bcrypt.compare(password, user.passwordHash);
+  }
+
+  async updateLastLogin(id: string): Promise<void> {
+    await this.usersRepository.update(id, {
+      lastLoginAt: new Date(),
+    });
+  }
+
+  async generatePasswordResetToken(email: string): Promise<string> {
+    const user = await this.findByEmail(email);
+    if (!user) {
+      throw new NotFoundException('User not found');
+    }
+
+    // Generate secure random token
+    const resetToken = crypto.randomBytes(32).toString('hex');
+    const resetTokenExpires = new Date();
+    resetTokenExpires.setHours(resetTokenExpires.getHours() + 1); // 1 hour expiry
+
+    await this.usersRepository.update(user.id, {
+      resetToken,
+      resetTokenExpires,
+    });
+
+    return resetToken;
+  }
+
+  async validateResetToken(token: string): Promise<User> {
+    const user = await this.usersRepository.findOne({
+      where: { resetToken: token },
+    });
+
+    if (!user) {
+      throw new NotFoundException('Invalid or expired reset token');
+    }
+
+    if (user.resetTokenExpires < new Date()) {
+      throw new NotFoundException('Reset token has expired');
+    }
+
+    return user;
+  }
+
+  async resetPassword(token: string, newPassword: string): Promise<void> {
+    const user = await this.validateResetToken(token);
+
+    const passwordHash = await bcrypt.hash(newPassword, 10);
+
+    await this.usersRepository.update(user.id, {
+      passwordHash,
+      resetToken: undefined,
+      resetTokenExpires: undefined,
+    });
   }
 }

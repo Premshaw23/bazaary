@@ -11,6 +11,8 @@ import { SellersModule } from '../sellers/sellers.module';
 import { EventsModule } from '../events/events.module';
 import { InventoryModule } from '../inventory/inventory.module';
 
+import { OrderAnalyticsService } from './order-analytics.service';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([Order, OrderItem]),
@@ -24,9 +26,11 @@ import { InventoryModule } from '../inventory/inventory.module';
   providers: [
     OrdersService,
     OrderStateMachineService,
+    OrderAnalyticsService,
   ],
   exports: [
     OrdersService,
+    OrderAnalyticsService,
   ],
 })
 export class OrdersModule {}

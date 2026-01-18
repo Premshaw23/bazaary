@@ -13,13 +13,20 @@ Bazaary is a full-stack e-commerce platform for buyers, sellers, and admins. It 
 - Analytics and reporting
 
 ## Tech Stack
-- **Frontend:** Next.js (React, TypeScript)
-- **Backend:** NestJS (TypeScript)
-- **Database:** PostgreSQL, MongoDB
-- **Cache/Queue:** Redis
-- **Object Storage:** MinIO (S3-compatible)
+- **Frontend:** Next.js 15+ (React 19, TypeScript), Framer Motion, Tailwind CSS 4
+- **Backend:** NestJS (Event-Driven Architecture)
+- **Database:** PostgreSQL (TypeORM), MongoDB (Mongoose)
+- **Cache/Queue:** Redis (ioredis), BullMQ
+- **Real-time:** Socket.io (WebSockets)
+- **Object Storage:** MinIO/Cloudinary
 - **Search:** Meilisearch
-- **Containerization:** Docker Compose
+
+## 💎 Why Bazaary? (Interview Highlights)
+1. **Event-Driven Architecture**: Uses an internal event bus to decouple Order, Inventory, and Wallet modules.
+2. **Real-Time Ledger System**: Features a locked/available fund mechanism similar to major platforms (Upwork/Amazon), ensuring transaction safety.
+3. **High-End UI/UX**: Custom design system with glassmorphism, fluid animations (Framer Motion), and mesh gradients.
+4. **Scalable Search**: Instant search-as-you-type powered by Meilisearch.
+5. **Real-time Synchronization**: WebSockets provide live status updates for orders and wallet balances.
 
 ## Project Structure
 

@@ -14,9 +14,20 @@ import { OrdersModule } from './modules/orders/orders.module';
 import { PaymentsModule } from './modules/payments/payments.module';
 import { EventsModule } from './modules/events/events.module';
 import { WalletsModule } from './modules/wallets/wallets.module';
+import { NotificationsModule } from './modules/notifications/notifications.module';
+import { SearchModule } from './modules/search/search.module';
+import { QueueModule } from './modules/queue/queue.module';
+
+import { APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
+import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
+import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 
 @Module({
   imports: [
+    ThrottlerModule.forRoot([{
+      ttl: 60000, // 1 minute
+      limit: 120, // 120 requests per minute per IP (increased for live search)
+    }]),
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
@@ -34,6 +45,19 @@ import { WalletsModule } from './modules/wallets/wallets.module';
     PaymentsModule,
     EventsModule,
     WalletsModule,
+    NotificationsModule,
+    SearchModule,
+    QueueModule,
+  ],
+  providers: [
+    {
+      provide: APP_INTERCEPTOR,
+      useClass: LoggingInterceptor,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ThrottlerGuard,
+    },
   ],
 })
 export class AppModule {}

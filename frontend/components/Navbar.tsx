@@ -4,9 +4,10 @@ import { useState, useRef, useEffect } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import { usePathname, useRouter } from "next/navigation";
-import { LogOut, ShoppingCart, Package, LayoutDashboard, Wallet, Settings, Crown, Menu, X, User } from "lucide-react";
+import { LogOut, ShoppingCart, Package, LayoutDashboard, Wallet, Settings, Crown, Menu, X, User, ShoppingBag, Search as SearchIcon } from "lucide-react";
 import { useAuth } from "@/lib/auth/context";
 import { useCart } from "@/lib/cart/context";
+import SearchOverlay from "@/components/SearchOverlay";
 
 type NavLink = {
   href: string;
@@ -57,6 +58,7 @@ export default function Navbar() {
   const uniqueCartCount = Array.isArray(cart) ? cart.length : 0;
   const [mobileOpen, setMobileOpen] = useState<boolean>(false);
   const [userMenuOpen, setUserMenuOpen] = useState<boolean>(false);
+  const [searchOpen, setSearchOpen] = useState<boolean>(false);
   const [scrolled, setScrolled] = useState<boolean>(false);
   const menuRef = useRef<HTMLDivElement>(null);
   const userMenuRef = useRef<HTMLDivElement>(null);
@@ -101,7 +103,7 @@ export default function Navbar() {
     return () => {
       try {
         if (ro && navRef.current) ro.unobserve(navRef.current);
-      } catch (e) {}
+      } catch (e) { }
       window.removeEventListener("resize", setNavOffset);
       document.body.style.paddingTop = "";
     };
@@ -111,6 +113,7 @@ export default function Navbar() {
   useEffect(() => {
     setMobileOpen(false);
     setUserMenuOpen(false);
+    setSearchOpen(false);
   }, [pathname]);
 
   // Close menus on outside click
@@ -135,6 +138,11 @@ export default function Navbar() {
       if (e.key === "Escape") {
         setMobileOpen(false);
         setUserMenuOpen(false);
+        setSearchOpen(false);
+      }
+      if ((e.metaKey || e.ctrlKey) && e.key === "k") {
+        e.preventDefault();
+        setSearchOpen(true);
       }
     };
     window.addEventListener("keydown", onKey);
@@ -169,35 +177,29 @@ export default function Navbar() {
 
   return (
     <>
+      <SearchOverlay isOpen={searchOpen} onClose={() => setSearchOpen(false)} />
       {/* Main Navbar */}
       <header
         ref={navRef}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
-          scrolled
-            ? "bg-white/50 backdrop-blur-sm shadow-lg border-b border-slate-200"
-            : "bg-white/40 backdrop-blur-md border-b border-slate-100"
-        }`}
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled
+          ? "glass py-2 shadow-xl"
+          : "bg-white/10 backdrop-blur-sm border-b border-transparent py-4"
+          }`}
       >
-        <div className="max-w-7xl mx-auto">
-          <nav className="flex items-center justify-between px-4 sm:px-6 py-1 sm:py-2">
+        <div className="max-w-7xl mx-auto px-4 md:px-8">
+          <nav className="flex items-center justify-between">
             {/* Logo */}
             <Link
               href="/"
-              className="flex items-center gap-2 sm:gap-3 group"
+              className="flex items-center gap-3 group"
             >
               <div className="relative flex items-center justify-center">
-                <div className="w-9 h-9 sm:w-10 sm:h-10 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center shadow-md group-hover:shadow-lg transition-all duration-300 group-hover:scale-105">
-                  <Image
-                    src="/logo.png"
-                    width={32}
-                    height={32}
-                    alt="Bazaary Logo"
-                    className="rounded-full"
-                  />
+                <div className="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center shadow-lg shadow-brand-500/20 group-hover:shadow-brand-500/40 transition-all duration-300 group-hover:scale-105 group-hover:rotate-3">
+                  <ShoppingBag className="text-white w-6 h-6" />
                 </div>
               </div>
-              <span className="text-xl sm:text-2xl font-extrabold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                Bazaary
+              <span className="text-2xl font-display font-bold text-slate-900 group-hover:text-brand-600 transition-colors">
+                Bazaary.
               </span>
             </Link>
 
@@ -212,11 +214,10 @@ export default function Navbar() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`relative flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 ${
-                      isActive
-                        ? "bg-linear-to-r from-blue-50 to-purple-50 text-blue-700 border border-blue-200 shadow-sm"
-                        : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
-                    }`}
+                    className={`relative flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 ${isActive
+                      ? "bg-linear-to-r from-blue-50 to-purple-50 text-blue-700 border border-blue-200 shadow-sm"
+                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                      }`}
                   >
                     {Icon && <Icon size={18} />}
                     <span className="text-sm">{link.label}</span>
@@ -232,6 +233,29 @@ export default function Navbar() {
 
             {/* Desktop Auth Section */}
             <div className="hidden lg:flex items-center gap-3">
+              {/* Search Trigger - Premium Fake Input */}
+              <button
+                onClick={() => setSearchOpen(true)}
+                className="hidden md:flex items-center gap-3 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-xl transition-all w-64 group border border-transparent hover:border-slate-300"
+              >
+                <SearchIcon size={18} className="text-slate-400 group-hover:text-brand-600 transition-colors" />
+                <span className="text-sm font-medium">Search products...</span>
+                <div className="flex items-center gap-1 ml-auto">
+                  <kbd className="hidden lg:inline-flex items-center justify-center h-5 px-1.5 text-[10px] font-medium text-slate-500 bg-white border border-slate-300 rounded shadow-sm">
+                    ⌘K
+                  </kbd>
+                </div>
+              </button>
+
+              {/* Mobile Search Icon (keep for mobile) */}
+              <button
+                onClick={() => setSearchOpen(true)}
+                className="md:hidden p-2 text-slate-600 hover:text-brand-600 hover:bg-slate-50 rounded-lg transition-colors"
+                aria-label="Search"
+              >
+                <SearchIcon className="w-5 h-5" />
+              </button>
+
               {user ? (
                 <div className="relative" ref={userMenuRef}>
                   <button
@@ -339,13 +363,21 @@ export default function Navbar() {
             </div>
 
             {/* Mobile Menu Button */}
-            <button
-              className="lg:hidden p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors"
-              onClick={() => setMobileOpen(true)}
-              aria-label="Open menu"
-            >
-              <Menu size={24} />
-            </button>
+            <div className="lg:hidden flex items-center gap-2">
+              <button
+                onClick={() => setSearchOpen(true)}
+                className="p-2 text-slate-600 hover:text-brand-600 hover:bg-slate-50 rounded-lg transition-colors"
+              >
+                <SearchIcon size={24} />
+              </button>
+              <button
+                className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors"
+                onClick={() => setMobileOpen(true)}
+                aria-label="Open menu"
+              >
+                <Menu size={24} />
+              </button>
+            </div>
           </nav>
         </div>
       </header>
@@ -361,9 +393,8 @@ export default function Navbar() {
       {/* Mobile Menu */}
       <aside
         ref={menuRef}
-        className={`fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white border-l border-slate-200 shadow-2xl transform transition-transform duration-300 z-50 lg:hidden ${
-          mobileOpen ? "translate-x-0" : "translate-x-full"
-        }`}
+        className={`fixed top-0 right-0 h-full w-80 max-w-[85vw] bg-white border-l border-slate-200 shadow-2xl transform transition-transform duration-300 z-50 lg:hidden ${mobileOpen ? "translate-x-0" : "translate-x-full"
+          }`}
       >
         <div className="flex flex-col h-full">
           {/* Mobile Menu Header */}
@@ -422,11 +453,10 @@ export default function Navbar() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileOpen(false)}
-                  className={`relative flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all duration-300 ${
-                    isActive
-                      ? "bg-linear-to-r from-blue-50 to-purple-50 text-blue-700 border border-blue-200 shadow-sm"
-                      : "text-slate-600 hover:bg-slate-50"
-                  }`}
+                  className={`relative flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all duration-300 ${isActive
+                    ? "bg-linear-to-r from-blue-50 to-purple-50 text-blue-700 border border-blue-200 shadow-sm"
+                    : "text-slate-600 hover:bg-slate-50"
+                    }`}
                 >
                   {Icon && <Icon size={20} />}
                   <span>{link.label}</span>

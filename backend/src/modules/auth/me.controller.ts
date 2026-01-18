@@ -1,4 +1,5 @@
 import { Controller, Get, Patch, Req, Body, UnauthorizedException, BadRequestException } from '@nestjs/common';
+import { SkipThrottle } from '@nestjs/throttler';
 import type { Request } from 'express';
 import { JwtService } from '@nestjs/jwt';
 import { UsersService } from '../users/users.service';
@@ -7,6 +8,7 @@ import { UsersService } from '../users/users.service';
 export class MeController {
   constructor(private jwtService: JwtService, private usersService: UsersService) {}
 
+  @SkipThrottle()
   @Get('me')
   async me(@Req() req: Request) {
     // console.log('Cookies received at /auth/me:', req.cookies);

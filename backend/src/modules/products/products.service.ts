@@ -168,8 +168,10 @@ export class ProductsService {
   }
 
   private async getFullProduct(productId: string): Promise<any> {
-
     const { IsNull } = require('typeorm');
+    const { ListingStatus } = require('../../database/entities/seller-listing.entity');
+    const { In } = require('typeorm');
+
     const product = await this.productsRepository.findOne({
       where: { id: productId, deletedAt: IsNull() },
     });
@@ -183,6 +185,28 @@ export class ProductsService {
       .lean()
       .exec();
 
+    // Fetch listings to get price/stock for search index
+    // We include ACTIVE, OUT_OF_STOCK, and DRAFT so the user can see their products
+    const listings = await this.listingsRepository.find({
+      where: { 
+        productId: product.id, 
+        status: In([ListingStatus.ACTIVE, ListingStatus.OUT_OF_STOCK, ListingStatus.DRAFT])
+      },
+    });
+
+    let price = 0;
+    let stockQuantity = 0;
+
+    if (listings.length > 0) {
+      // Find lowest price
+      price = Math.min(...listings.map(l => Number(l.price)));
+      // Sum stock
+      stockQuantity = listings.reduce((sum, l) => sum + l.stockQuantity, 0);
+    }
+    
+    // Debug logging for individual product sync
+    // this.logger.debug(`[Sync] Product ${product.sku}: Found ${listings.length} listings. Price: ${price}, Stock: ${stockQuantity}`);
+
     return {
       id: product.id,
       sku: product.sku,
@@ -192,6 +216,8 @@ export class ProductsService {
       mongoRef: product.mongoRef,
       createdAt: product.createdAt,
       updatedAt: product.updatedAt,
+      price,
+      stockQuantity,
       catalog: catalog ? {
         description: catalog.description,
         shortDescription: catalog.shortDescription,
@@ -203,5 +229,27 @@ export class ProductsService {
         searchKeywords: catalog.searchKeywords,
       } : null,
     };
+  }
+
+  async syncToMeili(): Promise<{ count: number; details: string[] }> {
+    const products = await this.findAll({});
+    this.logger.log(`Syncing ${products.length} products to Meilisearch...`);
+    
+    let count = 0;
+    const details: string[] = [];
+    for (const product of products) {
+      try {
+        await indexProductToMeili(product);
+        const info = `Indexed ${product.name} (${product.id}) - Price: ${product.price}, Stock: ${product.stockQuantity}`;
+        this.logger.log(info);
+        details.push(info);
+        count++;
+      } catch (e) {
+        this.logger.error(`Failed to index product ${product.id}`, e);
+      }
+    }
+    
+    this.logger.log(`Synced ${count} products.`);
+    return { count, details };
   }
 }

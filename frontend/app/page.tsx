@@ -1,90 +1,212 @@
+"use client";
+
 import Link from 'next/link';
+import Image from 'next/image';
+import { motion } from 'framer-motion';
+import { ShoppingBag, ShieldCheck, Zap, ArrowRight, Wallet, TrendingUp, BarChart3, Users } from 'lucide-react';
 
 export default function Home() {
+  const containerVariants = {
+    hidden: { opacity: 0 },
+    visible: {
+      opacity: 1,
+      transition: {
+        staggerChildren: 0.1,
+        delayChildren: 0.2
+      }
+    }
+  };
+
+  const itemVariants = {
+    hidden: { y: 20, opacity: 0 },
+    visible: { y: 0, opacity: 1, transition: { duration: 0.5 } }
+  };
+
   return (
-    <div className="min-h-screen flex flex-col bg-linear-to-br from-blue-50 via-white to-blue-100">
-      <header className="w-full px-4 py-10 flex flex-col items-center justify-center bg-linear-to-r from-blue-700 to-blue-500 text-white shadow-lg">
-        <h1 className="text-5xl md:text-6xl font-extrabold mb-2 tracking-tight drop-shadow-lg">Bazaary</h1>
-        <p className="text-2xl md:text-3xl mb-4 font-semibold drop-shadow">Empowering Sellers. Delighting Buyers.</p>
-        <div className="flex gap-4 mt-2">
-          <Link href="/login" className="btn-premium bg-white text-blue-700 px-6 py-2 rounded-xl font-bold shadow hover:bg-blue-50 transition">Login</Link>
-          <Link href="/register" className="btn-premium bg-blue-600 text-white px-6 py-2 rounded-xl font-bold shadow hover:bg-blue-700 transition">Register</Link>
+    <div className="min-h-screen relative overflow-hidden bg-white selection:bg-brand-100 selection:text-brand-700">
+      {/* Mesh Gradient Background */}
+      <div className="absolute top-0 left-0 w-full h-[1000px] pointer-events-none z-0 mesh-gradient opacity-60" />
+
+      {/* Hero Section */}
+      <section className="relative pt-32 pb-20 px-4 md:px-8 max-w-7xl mx-auto z-10">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
+          <motion.div
+            initial="hidden"
+            animate="visible"
+            variants={containerVariants}
+            className="flex flex-col space-y-8"
+          >
+            <motion.div variants={itemVariants} className="inline-flex items-center space-x-2 bg-brand-50 px-4 py-2 rounded-full border border-brand-100 w-fit">
+              <span className="flex h-2 w-2 rounded-full bg-brand-500 animate-pulse" />
+              <span className="text-sm font-semibold text-brand-700 uppercase tracking-wider">Next-Gen Marketplace</span>
+            </motion.div>
+
+            <motion.h1 variants={itemVariants} className="text-5xl md:text-7xl font-display font-extrabold leading-[1.1] text-slate-900">
+              The Future of <span className="text-transparent bg-clip-text bg-gradient-to-r from-brand-600 to-accent">Digital Commerce</span>
+            </motion.h1>
+
+            <motion.p variants={itemVariants} className="text-xl text-slate-600 leading-relaxed max-w-xl">
+              Bazaary empowers sellers with real-time analytics, instant payouts, and a seamless shopping experience for buyers worldwide.
+            </motion.p>
+
+            <motion.div variants={itemVariants} className="flex flex-wrap gap-4 pt-4">
+              <Link href="/register" className="btn-premium group">
+                Get Started Now <ArrowRight className="ml-2 w-5 h-5 transition-transform group-hover:translate-x-1" />
+              </Link>
+              <Link href="/about" className="btn-secondary">
+                Learn More
+              </Link>
+            </motion.div>
+
+            <motion.div variants={itemVariants} className="flex items-center space-x-6 pt-4 border-t border-slate-100">
+              <div className="flex -space-x-3">
+                {[1, 2, 3, 4].map(i => (
+                  <div key={i} className="w-10 h-10 rounded-full border-2 border-white bg-slate-200" />
+                ))}
+              </div>
+              <p className="text-sm text-slate-500 font-medium">Joined by <span className="text-slate-900 font-bold">2,500+</span> top-tier sellers this month</p>
+            </motion.div>
+          </motion.div>
+
+          <motion.div
+            initial={{ opacity: 0, scale: 0.8 }}
+            animate={{ opacity: 1, scale: 1 }}
+            transition={{ duration: 0.8, ease: "easeOut" }}
+            className="relative"
+          >
+            <div className="absolute -inset-4 bg-brand-500/10 blur-3xl rounded-full" />
+            <div className="relative glass rounded-2xl overflow-hidden shadow-2xl animate-float">
+              <Image
+                src="/images/hero.png"
+                alt="Bazaary Dashboard"
+                width={800}
+                height={800}
+                className="w-full h-auto object-cover"
+                priority
+              />
+            </div>
+          </motion.div>
         </div>
-      </header>
-      <main className="flex-1 flex flex-col items-center justify-center px-4 py-12">
-        <section className="w-full max-w-4xl bg-white/90 rounded-2xl shadow-xl p-8 mb-10 text-center">
-          <h2 className="text-3xl font-extrabold text-blue-700 mb-4">Why Bazaary?</h2>
-          <p className="text-lg text-gray-700 mb-6">Bazaary is a next-generation, seller-first e-commerce platform designed to make online selling and buying seamless, transparent, and rewarding for everyone.</p>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-            <FeatureCard icon="🛒" title="Seller-First" desc="Low fees, instant payouts, and powerful tools for sellers of all sizes." />
-            <FeatureCard icon="⚡" title="Fast & Secure" desc="Lightning-fast checkout, secure payments, and robust fraud protection." />
-            <FeatureCard icon="🤝" title="Community Driven" desc="Built for trust, transparency, and long-term relationships between buyers and sellers." />
+      </section>
+
+      {/* Features Grid */}
+      <section className="relative py-24 px-4 md:px-8 max-w-7xl mx-auto z-10 bg-white/50 backdrop-blur-sm">
+        <div className="text-center mb-16">
+          <h2 className="text-3xl md:text-5xl font-display font-bold text-slate-900 mb-4">Why Industry Leaders Choose Bazaary</h2>
+          <p className="text-slate-500 max-w-2xl mx-auto text-lg">Powerful features designed to scale your business without the complexity of traditional platforms.</p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-8">
+          <FeatureCard
+            icon={<Wallet className="w-6 h-6 text-brand-600" />}
+            title="Real-Time Wallet"
+            desc="Track every cent with our live ledger system. Request payouts and see them reflect instantly."
+          />
+          <FeatureCard
+            icon={<ShieldCheck className="w-6 h-6 text-brand-600" />}
+            title="Secure Escrow"
+            desc="Buy and sell with confidence. Our advanced dispute resolution protects every transaction."
+          />
+          <FeatureCard
+            icon={<Zap className="w-6 h-6 text-brand-600" />}
+            title="Instant Search"
+            desc="Powered by Meilisearch for ultra-fast, relevant results. Find what you need as you type."
+          />
+          <FeatureCard
+            icon={<TrendingUp className="w-6 h-6 text-brand-600" />}
+            title="Seller Growth"
+            desc="Dedicated tools for stock management, listing optimization, and performance analytics."
+          />
+        </div>
+      </section>
+
+      {/* Stats Section */}
+      <section className="py-20 bg-slate-900 text-white overflow-hidden relative">
+        <div className="absolute inset-0 opacity-20 mesh-gradient" />
+        <div className="max-w-7xl mx-auto px-4 md:px-8 relative z-10">
+          <div className="grid grid-cols-2 md:grid-cols-4 gap-12 text-center">
+            <StatItem label="Total Volume" value="$24M+" />
+            <StatItem label="Safe Orders" value="1.2M+" />
+            <StatItem label="Active Sellers" value="15k+" />
+            <StatItem label="Global Reach" value="45+" />
           </div>
-        </section>
-        <section className="w-full max-w-4xl bg-linear-to-r from-blue-100 to-blue-50 rounded-2xl shadow p-8 text-center mb-10">
-          <h3 className="text-2xl font-bold text-blue-700 mb-2">Platform Features</h3>
-          <ul className="grid grid-cols-1 md:grid-cols-2 gap-4 text-left text-lg text-blue-900">
-            <li>✔️ Real-time Wallet & Ledger</li>
-            <li>✔️ Instant Payout Requests</li>
-            <li>✔️ Advanced Order Management</li>
-            <li>✔️ Product Listings & Inventory</li>
-            <li>✔️ Admin Unlock & Dispute Flows</li>
-            <li>✔️ Analytics & Insights</li>
-            <li>✔️ Modern, Responsive UI</li>
-            <li>✔️ 24/7 Support</li>
-          </ul>
-        </section>
-        <section className="w-full max-w-4xl text-center mb-10">
-          <h3 className="text-2xl font-bold text-blue-700 mb-2">How It Works</h3>
-          <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mt-6">
-            <StepCard step={1} title="Sign Up" desc="Create your free account as a seller or buyer in seconds." />
-            <StepCard step={2} title="List or Shop" desc="Sellers list products, buyers browse and purchase with ease." />
-            <StepCard step={3} title="Get Paid & Enjoy" desc="Sellers receive instant payouts, buyers enjoy fast delivery." />
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-24 px-4 md:px-8 max-w-5xl mx-auto text-center">
+        <div className="glass p-12 rounded-3xl space-y-8 relative overflow-hidden">
+          <div className="absolute top-0 right-0 w-64 h-64 bg-brand-500/10 blur-3xl -mr-32 -mt-32" />
+          <h2 className="text-4xl md:text-5xl font-display font-bold text-slate-900">Ready to redefine your shop?</h2>
+          <p className="text-xl text-slate-600">Join the next generation of digital merchants and start selling in minutes.</p>
+          <div className="flex justify-center gap-4">
+            <Link href="/register" className="btn-premium px-10">Start Selling</Link>
+            <Link href="/login" className="btn-secondary px-10">Sign In</Link>
           </div>
-        </section>
-        <section className="w-full max-w-4xl text-center">
-          <h3 className="text-2xl font-bold text-blue-700 mb-2">Get Started Today</h3>
-          <p className="text-lg text-gray-700 mb-6">Join thousands of sellers and buyers who trust Bazaary for their e-commerce needs.</p>
-          <Link href="/register" className="btn-premium bg-blue-600 text-white px-8 py-3 rounded-xl font-bold shadow hover:bg-blue-700 transition text-xl">Create Your Free Account</Link>
-        </section>
-      </main>
+        </div>
+      </section>
+
       <Footer />
     </div>
   );
 }
 
-function FeatureCard({ icon, title, desc }: { icon: string; title: string; desc: string }) {
+function FeatureCard({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
   return (
-    <div className="bg-blue-50 rounded-xl p-6 shadow flex flex-col items-center">
-      <div className="text-4xl mb-2">{icon}</div>
-      <h4 className="text-xl font-bold text-blue-800 mb-1">{title}</h4>
-      <p className="text-gray-700">{desc}</p>
-    </div>
+    <motion.div
+      whileHover={{ y: -5 }}
+      className="premium-card group"
+    >
+      <div className="w-14 h-14 rounded-2xl bg-brand-50 flex items-center justify-center mb-6 transition-colors group-hover:bg-brand-600 group-hover:text-white">
+        {icon}
+      </div>
+      <h3 className="text-xl font-bold text-slate-900 mb-3">{title}</h3>
+      <p className="text-slate-500 leading-relaxed">{desc}</p>
+    </motion.div>
   );
 }
 
-function StepCard({ step, title, desc }: { step: number; title: string; desc: string }) {
+function StatItem({ label, value }: { label: string; value: string }) {
   return (
-    <div className="bg-white rounded-xl p-6 shadow flex flex-col items-center border border-blue-100">
-      <div className="w-10 h-10 flex items-center justify-center rounded-full bg-blue-600 text-white font-bold text-lg mb-2">{step}</div>
-      <h4 className="text-lg font-bold text-blue-800 mb-1">{title}</h4>
-      <p className="text-gray-700 text-sm">{desc}</p>
+    <div className="space-y-2">
+      <div className="text-4xl md:text-5xl font-display font-black text-white">{value}</div>
+      <div className="text-sm font-medium text-slate-400 uppercase tracking-widest">{label}</div>
     </div>
   );
 }
 
 function Footer() {
   return (
-    <footer className="w-full text-center text-xs text-gray-500 py-6 border-t border-gray-200 bg-white/90 mt-8">
-      <div className="flex flex-col md:flex-row items-center justify-center gap-2 md:gap-6 mb-2">
-        <span>Bazaary &copy; {new Date().getFullYear()} &mdash; Built for Sellers, Loved by Buyers</span>
-        <span>
-          <Link href="/about" className="hover:underline text-blue-700">About</Link> &bull;{' '}
-          <Link href="/contact" className="hover:underline text-blue-700">Contact</Link> &bull;{' '}
-          <a href="mailto:support@bazaary.com" className="hover:underline text-blue-700">support@bazaary.com</a>
-        </span>
+    <footer className="w-full border-t border-slate-100 bg-white py-12 px-4 md:px-8">
+      <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
+        <div className="col-span-1 md:col-span-2 space-y-6">
+          <h2 className="text-2xl font-display font-bold text-brand-600">Bazaary.</h2>
+          <p className="text-slate-500 max-w-sm">The world's most advanced e-commerce engine for modern creators and established businesses alike.</p>
+        </div>
+        <div>
+          <h4 className="font-bold mb-4">Platform</h4>
+          <ul className="space-y-2 text-slate-500">
+            <li><Link href="/about" className="hover:text-brand-600">About Us</Link></li>
+            <li><Link href="/features" className="hover:text-brand-600">Features</Link></li>
+            <li><Link href="/pricing" className="hover:text-brand-600">Pricing</Link></li>
+          </ul>
+        </div>
+        <div>
+          <h4 className="font-bold mb-4">Support</h4>
+          <ul className="space-y-2 text-slate-500">
+            <li><Link href="/contact" className="hover:text-brand-600">Contact</Link></li>
+            <li><Link href="/docs" className="hover:text-brand-600">API Docs</Link></li>
+            <li><a href="mailto:support@bazaary.com" className="hover:text-brand-600">support@bazaary.com</a></li>
+          </ul>
+        </div>
       </div>
-      <div className="text-gray-400">Made with <span className="text-pink-500">♥</span> by the Bazaary Team</div>
+      <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-slate-50 flex flex-col md:flex-row justify-between items-center text-slate-400 text-sm">
+        <p>&copy; {new Date().getFullYear()} Bazaary Inc. All rights reserved.</p>
+        <div className="flex space-x-6 mt-4 md:mt-0">
+          <Link href="/privacy" className="hover:text-brand-600">Privacy Policy</Link>
+          <Link href="/terms" className="hover:text-brand-600">Terms of Service</Link>
+        </div>
+      </div>
     </footer>
   );
 }

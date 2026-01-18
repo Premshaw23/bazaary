@@ -69,6 +69,12 @@ export class User {
   @Column({ name: 'last_login_at', nullable: true })
   lastLoginAt: Date;
 
+  @Column({ name: 'reset_token', nullable: true })
+  resetToken: string;
+
+  @Column({ name: 'reset_token_expires', nullable: true })
+  resetTokenExpires: Date;
+
   @Column({ type: 'jsonb', default: {} })
   metadata: Record<string, any>;
 }

@@ -24,7 +24,8 @@ export async function apiFetch<T>(
     let errorBody = null;
     try {
       const data = await res.json();
-      message = data.message || message;
+      // Bazaary API returns { error: "User with this email already exists" } or { message: "..." }
+      message = data.error || data.message || message;
       errorBody = data;
     } catch {}
 

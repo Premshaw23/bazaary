@@ -44,6 +44,11 @@ export class ProductsController {
     }
   }
 
+  @Post('sync-search')
+  async syncSearch() {
+    return this.productsService.syncToMeili();
+  }
+
   @Get('search')
   async searchProducts(@Query('q') q: string) {
     if (!q || q.trim().length === 0) {
