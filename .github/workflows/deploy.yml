@@ -39,6 +39,10 @@ jobs:
 
       - name: 🔑 Set up SSH Private Key
         run: |
+          if [ -z "${{ secrets.SERVER_IP }}" ]; then
+            echo "❌ ERROR: SERVER_IP secret is missing!"
+            exit 1
+          fi
           mkdir -p ~/.ssh
           echo "${{ secrets.SSH_PRIVATE_KEY }}" > ~/.ssh/id_rsa
           chmod 600 ~/.ssh/id_rsa
