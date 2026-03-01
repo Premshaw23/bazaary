@@ -6,7 +6,7 @@ on:
 
 jobs:
   test-and-build:
-    name: 🧪 CI: Test & Build
+    name: "🧪 CI: Test & Build"
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
@@ -30,7 +30,7 @@ jobs:
           npm run build
 
   deploy:
-    name: 🚀 CD: Deploy to Azure VM
+    name: "🚀 CD: Deploy to Azure VM"
     needs: test-and-build
     if: github.ref == 'refs/heads/master' || github.ref == 'refs/heads/main'
     runs-on: ubuntu-latest
