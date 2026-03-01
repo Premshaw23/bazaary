@@ -1,4 +1,3 @@
-cat > .gitignore << 'EOF'
 # Dependencies
 node_modules/
 .pnp
@@ -36,7 +35,8 @@ Thumbs.db
 
 # Docker
 docker-compose.override.yml
-EOF
 
+# Project Specific
 /project-details.md
 /till-week2.md
+certbot/
