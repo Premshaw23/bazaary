@@ -52,5 +52,6 @@ jobs:
         run: |
           ssh -i ~/.ssh/id_rsa ${{ secrets.SERVER_USER }}@${{ secrets.SERVER_IP }} << 'EOF'
             cd ~/bazaary
+            chmod +x scripts/deploy.sh
             ./scripts/deploy.sh
           EOF
