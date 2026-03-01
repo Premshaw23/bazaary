@@ -1,4 +1,7 @@
-const API_BASE_URL = process.env.NEXT_PUBLIC_API_URL!;
+const NEXT_API_URL = process.env.NEXT_PUBLIC_API_URL!;
+const SERVER_API_URL = process.env.BACKEND_URL || NEXT_API_URL;
+
+const API_BASE_URL = typeof window === 'undefined' ? SERVER_API_URL : NEXT_API_URL;
 
 type ApiError = {
   status: number;
