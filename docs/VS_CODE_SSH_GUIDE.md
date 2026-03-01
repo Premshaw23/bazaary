@@ -1,12 +1,12 @@
 # 🔌 VS Code Remote-SSH: Professional Workflow Guide
 
-This guide explains how to connect your local VS Code to your Azure VM ("Remote-SSH") using an **Alias** and the "Strict" workflow for updating your server safely.
+This guide explains how to connect your local VS Code and Terminal to your Azure VM ("Remote-SSH") using an **Alias** and the "Strict" workflow for updating your server safely.
 
 ---
 
 ## 🛠️ 1. Professional Quick-Connect (Host Alias)
 
-Instead of typing the IP address every time, we use a **Host Alias**. This makes connecting instant and professional.
+Instead of typing the IP address every time, we use a **Host Alias**. This makes connecting instant and professional across your entire computer (VS Code and Terminal).
 
 ### Step 1: Configure the Alias
 1.  In VS Code, press `Ctrl+Shift+P` and type `SSH: Open SSH Configuration File...`.
@@ -19,11 +19,17 @@ Instead of typing the IP address every time, we use a **Host Alias**. This makes
         IdentityFile "C:/Users/shaw8/.ssh/bazaary_key.pem"
     ```
 
-### Step 2: Connect via Alias
+### Step 2: Connect via Terminal (Keyboard) 🚀
+Open your terminal (PowerShell, Bash, or CMD) and type this simple command:
+```bash
+ssh bazaary-server
+```
+*That's it! No IP, no key path, just the alias.*
+
+### Step 3: Connect via VS Code (Mouse) 🖱️
 1.  Click the **Blue Icon** (bottom-left) in VS Code.
 2.  Select **"Connect to Host..."**.
 3.  Choose **`bazaary-server`**. 
-    - *Note: If you see the old IP address in the list, you can ignore it or delete it from the config file. Always use the name alias.*
 
 ---
 
@@ -52,7 +58,7 @@ git push origin master
 ```
 
 ### Stage 2: Server (Pull & Deploy)
-In your **`bazaary-server`** VS Code window:
+In your **`bazaary-server`** VS Code window or Terminal:
 ```bash
 cd ~/bazaary
 ./scripts/deploy.sh
@@ -62,13 +68,13 @@ cd ~/bazaary
 
 ## ⌨️ 4. Quick-Fix Command Cheat-Sheet
 
-| Goal | Command |
-| :--- | :--- |
-| **Verify Key Path** | `ssh -G bazaary-server \| grep identityfile` |
-| **Fix Broken Merge** | `git fetch --all && git reset --hard origin/master` |
-| **Update App** | `./scripts/deploy.sh` |
-| **Live Logs** | `docker compose logs -f` |
+| Goal | Command | Why this command? |
+| :--- | :--- | :--- |
+| **Instant Login** | `ssh bazaary-server` | Faster than typing the whole string. |
+| **Verify Key Path** | `ssh -G bazaary-server \| grep identityfile` | Checks if the alias is pointing correctly. |
+| **Fix Broken Merge** | `git fetch --all && git reset --hard origin/master` | Fixes any "Conflict" errors by forcing server to match GitHub. |
+| **Update App** | `./scripts/deploy.sh` | Restarts the app with your latest code. |
 
 ---
 
-**You are now connected via a professional Alias. No more IPs, just one-click access!**
+**You are now connected via a professional Alias. No more IPs, just one simple command!**
