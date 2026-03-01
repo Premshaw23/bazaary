@@ -1,4 +1,5 @@
 #!/bin/bash
+set -e
 
 # Bazaary Production Deployment Script
 # This script automates the update process on your Azure VM.
@@ -7,7 +8,8 @@ echo "🚀 Starting Bazaary Update..."
 
 # 1. Pull latest changes
 echo "📥 Pulling latest code from GitHub..."
-git pull
+git fetch origin
+git reset --hard origin/master
 
 # 2. Check for critical configuration
 if [ ! -f "backend/.env" ]; then
