@@ -21,9 +21,11 @@ export type PaymentMethod =
 
 export type InitiatePaymentResponse = {
   id: string; // paymentId
-  status: "SUCCESS" | "FAILED";
+  status: string;
   gatewayTransactionId: string;
+  gatewayResponse?: any;
 };
+
 
 export function initiatePayment(
   orderId: string,

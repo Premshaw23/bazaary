@@ -16,8 +16,9 @@ import { SellersModule } from '../sellers/sellers.module';
       imports: [ConfigModule],
       useFactory: async (configService: ConfigService) => ({
         connection: {
-          host: configService.get('REDIS_HOST') || 'localhost',
-          port: configService.get('REDIS_PORT') || 6379,
+          host: configService.get<string>('REDIS_HOST') === 'redis' ? '127.0.0.1' : (configService.get('REDIS_HOST') || '127.0.0.1'),
+          port: configService.get<number>('REDIS_PORT') || 6379,
+
         },
       }),
       inject: [ConfigService],

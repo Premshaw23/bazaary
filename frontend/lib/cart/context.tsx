@@ -21,30 +21,21 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     setLoading(true);
-    console.log("[CartContext] user:", user);
     if (user?.id) {
-      const cartData = getCart(user.id);
-      console.log("[CartContext] cart (on user.id change):", cartData);
-      setCart(cartData);
+      if (user.role === "BUYER") {
+        const cartData = getCart(user.id);
+        console.log(`🛒 [CartContext] Loading cart for ${user.id}:`, cartData.length, "items");
+        setCart(cartData);
+      } else {
+        // If they became a Seller, they shouldn't have a buyer cart
+        setCart([]);
+      }
     } else {
       setCart([]);
     }
     setLoading(false);
-  }, [user?.id]);
+  }, [user?.id, user?.role]);
 
-  useEffect(() => {
-    setLoading(true);
-    // Clear cart on logout or role change
-    if (user?.id && user.role === "BUYER") {
-      const cartData = getCart(user.id);
-      console.log("[CartContext] cart (on user.role/user change):", cartData);
-      setCart(cartData);
-    } else {
-      if (user?.id) emptyCart(user.id);
-      setCart([]);
-    }
-    setLoading(false);
-  }, [user?.role, user]);
 
   const addToCart = (item: any) => {
     if (user?.role !== "BUYER" || !user?.id) return;
@@ -66,9 +57,11 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   const clearCart = () => {
     if (!user?.id) return;
+    console.log(`🛒 [CartContext] Clearing cart for ${user.id}`);
     emptyCart(user.id);
     setCart([]);
   };
+
 
   return (
     <CartContext.Provider value={{ cart, loading, addToCart, updateQuantity: handleUpdateQuantity, removeFromCart: handleRemoveFromCart, clearCart }}>

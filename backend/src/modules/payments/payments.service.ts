@@ -9,6 +9,8 @@ import { EventBusService } from '../events/services/event-bus.service';
 import { WalletsService } from '../wallets/wallets.service';
 import { LedgerReason } from '../wallets/entities/wallet-ledger.entity';
 import { PLATFORM_FEE_PERCENT } from '../../config/platform.config';
+import { StripeGateway } from './gateways/stripe.gateway';
+
 
 @Injectable()
 export class PaymentsService {
@@ -20,11 +22,20 @@ export class PaymentsService {
     @InjectRepository(Order)
     private ordersRepository: Repository<Order>,
     private mockGateway: MockPaymentGateway,
+    private stripeGateway: StripeGateway,
     private ordersService: OrdersService,
     private dataSource: DataSource,
-    private readonly eventBus: EventBusService, // 👈 ADD
-    private readonly walletsService: WalletsService, // <-- inject WalletsService
+    private readonly eventBus: EventBusService,
+    private readonly walletsService: WalletsService,
   ) {}
+
+  private getGateway(gatewayName: string) {
+    if (gatewayName === 'STRIPE') {
+      return this.stripeGateway;
+    }
+    return this.mockGateway;
+  }
+
 
   async initiatePayment(
     orderId: string,
@@ -69,8 +80,9 @@ export class PaymentsService {
       method,
       status: PaymentStatus.PENDING,
       idempotencyKey,
-      paymentGateway: 'MOCK',
+      paymentGateway: method === PaymentMethod.CARD ? 'STRIPE' : 'MOCK',
     });
+
 
     const savedPayment = await this.paymentsRepository.save(payment);
 
@@ -85,14 +97,16 @@ export class PaymentsService {
 
     // Initiate payment with gateway
     try {
-      this.logger.log(`Initiating payment with mock gateway for order ${orderId}`);
+      const gateway = this.getGateway(savedPayment.paymentGateway);
+      this.logger.log(`Initiating payment with ${savedPayment.paymentGateway} gateway for order ${orderId}`);
       
-      const gatewayResponse = await this.mockGateway.initiatePayment(
+      const gatewayResponse = await gateway.initiatePayment(
         orderId,
         Number(order.totalAmount),
         'INR',
         method,
       );
+
 
       savedPayment.gatewayTransactionId = gatewayResponse.transactionId;
       savedPayment.gatewayOrderId = String(gatewayResponse.gatewayOrderId);
@@ -157,8 +171,10 @@ export class PaymentsService {
       }
 
       // Verify with gateway
-      this.logger.log(`Calling gateway to verify: ${transactionId}`);
-      const gatewayResponse = await this.mockGateway.verifyPayment(transactionId);
+      const gateway = this.getGateway(payment.paymentGateway);
+      this.logger.log(`Calling ${payment.paymentGateway} gateway to verify: ${transactionId}`);
+      const gatewayResponse = await gateway.verifyPayment(transactionId);
+
       this.logger.log(`Gateway response: ${JSON.stringify(gatewayResponse)}`);
 
       if (gatewayResponse.success) {
@@ -263,10 +279,12 @@ export class PaymentsService {
       }
 
       // Initiate refund with gateway
-      const refundResponse = await this.mockGateway.initiateRefund(
+      const gateway = this.getGateway(payment.paymentGateway);
+      const refundResponse = await gateway.initiateRefund(
         payment.gatewayTransactionId,
         refundAmount,
       );
+
 
       if (refundResponse.success) {
         payment.refundAmount = Number(payment.refundAmount) + refundAmount;

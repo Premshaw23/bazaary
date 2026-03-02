@@ -10,6 +10,8 @@ import { EventsModule } from '../events/events.module';
 import { WalletsService } from '../wallets/wallets.service';
 import { WalletsModule } from '../wallets/wallets.module';
 
+import { StripeGateway } from './gateways/stripe.gateway';
+
 @Module({
   imports: [
     TypeOrmModule.forFeature([Payment, Order]),
@@ -18,7 +20,8 @@ import { WalletsModule } from '../wallets/wallets.module';
     WalletsModule,
   ],
   controllers: [PaymentsController],
-  providers: [PaymentsService, MockPaymentGateway, WalletsService],
+  providers: [PaymentsService, MockPaymentGateway, StripeGateway, WalletsService],
   exports: [PaymentsService],
 })
+
 export class PaymentsModule {}

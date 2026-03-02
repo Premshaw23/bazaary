@@ -10,6 +10,12 @@ import {
 } from "@/lib/api/payments";
 import { getOrderById, OrderDetail } from "@/lib/api/orders";
 import CustomLoader from "@/components/CustomLoader";
+import { loadStripe } from "@stripe/stripe-js";
+import { Elements } from "@stripe/react-stripe-js";
+import StripePaymentForm from "@/components/StripePaymentForm";
+
+const stripePromise = loadStripe(process.env.NEXT_PUBLIC_STRIPE_PUBLIC_KEY || "");
+
 
 function generateIdempotencyKey(orderId: string) {
   return `pay_${orderId}_${Date.now()}`;
@@ -34,6 +40,9 @@ export default function PaymentPage() {
   const [error, setError] = useState("");
   const [order, setOrder] = useState<OrderDetail | null>(null);
   const [orderLoading, setOrderLoading] = useState(true);
+  const [clientSecret, setClientSecret] = useState<string | null>(null);
+  const [currentPaymentId, setCurrentPaymentId] = useState<string | null>(null);
+
 
   useEffect(() => {
     async function fetchOrder() {
@@ -68,77 +77,66 @@ export default function PaymentPage() {
     throw new Error(`Order did not reach state ${expectedState}`);
   }
 
-  async function handlePay() {
+  async function handleStartPayment() {
     if (!order) return;
+    if (!method) {
+      setError("Please select a payment method");
+      return;
+    }
+
     setError("");
     setLoading(true);
+
     try {
-      console.log("[handlePay] Starting payment for order:", order);
-      if (order.state === "CREATED") {
-        if (!method) {
-          setError("Please select a payment method");
-          setLoading(false);
-          return;
-        }
-        // 1️⃣ Initiate payment
-        const init = await initiatePayment(
-          String(orderId),
-          method as PaymentMethod,
-          idempotencyKey
-        );
-        console.log("[handlePay] INIT PAYMENT RESPONSE", init);
-        if (!init || init.status === "FAILED") {
-          setError("Payment initiation failed. No money was deducted.");
-          setLoading(false);
-          return;
-        }
-        // 2️⃣ Wait for PAYMENT_PENDING
-        await waitForOrderState(String(orderId), "PAYMENT_PENDING");
-        // 3️⃣ Refetch order to get latest payment object
-        const refreshedOrder = await getOrderById(String(orderId));
-        console.log("[handlePay] Refreshed order after PAYMENT_PENDING:", refreshedOrder);
-        if (
-          !refreshedOrder || 
-          refreshedOrder.state !== "PAYMENT_PENDING" ||
-          !refreshedOrder.payment
-        ) {
-          throw new Error("Order/payment not ready for verification");
-        }
-        // 4️⃣ Verify payment using latest payment object
-        await verifyPayment(
-          refreshedOrder.payment.id,
-          refreshedOrder.payment.gatewayTransactionId
-        );
-        console.log("[handlePay] Payment verified, waiting for PAID state...");
-        // 5️⃣ Wait for PAID
-        await waitForOrderState(String(orderId), "PAID");
-        clearCart();
-        // 6️⃣ Redirect
-        router.replace(`/orders/${orderId}`);
-      } else if (order.state === "PAYMENT_PENDING" && order.payment) {
-        // Only verify, never re-initiate
-        await verifyPayment(order.payment.id, order.payment.gatewayTransactionId);
-        console.log("[handlePay] Payment verified (PAYMENT_PENDING), waiting for PAID state...");
-        await waitForOrderState(String(orderId), "PAID");
-        clearCart();
-        router.replace(`/orders/${orderId}`);
+      console.log("[handleStartPayment] Initiating for method:", method);
+      const init = await initiatePayment(
+        String(orderId),
+        method as PaymentMethod,
+        idempotencyKey
+      );
+
+      if (!init || init.status === "FAILED") {
+        setError("Payment initiation failed. Please try again.");
+        setLoading(false);
+        return;
+      }
+
+      setCurrentPaymentId(init.id);
+
+      if (method === "CARD" && init.gatewayResponse?.client_secret) {
+        setClientSecret(init.gatewayResponse.client_secret);
+        // We don't call verify yet, we wait for StripeForm to finish
       } else {
-        setError(
-          "Order is not in a payable state. Please refresh or check order status."
-        );
-        console.log("[handlePay] Order not in payable state:", order);
+        // For other methods (MOCK/UPI), we proceed to verify immediately
+        // (Assuming MOCK or simple UPI flow)
+        await handleVerify(init.id, init.gatewayTransactionId);
       }
     } catch (err: any) {
-      setError(
-        err.message ||
-          (err.errorBody && err.errorBody.message) ||
-          "Payment error"
-      );
-      console.error("[handlePay] Error:", err);
-    } finally {
+      setError(err.message || "Initiation failed");
       setLoading(false);
     }
   }
+
+  async function handleVerify(pId: string, tId: string) {
+    setLoading(true);
+    setError("");
+    try {
+      console.log("[handleVerify] Verifying:", pId, tId);
+      await verifyPayment(pId, tId);
+      await waitForOrderState(String(orderId), "PAID");
+      clearCart();
+      router.replace(`/orders/${orderId}`);
+    } catch (err: any) {
+      setError(err.message || "Verification failed");
+      setLoading(false);
+    }
+  }
+
+  const handleStripeSuccess = async (paymentIntentId: string) => {
+    if (!currentPaymentId) return;
+    await handleVerify(currentPaymentId, paymentIntentId);
+  };
+
 
   useEffect(() => {
     if (order && order.state === "PAID") {
@@ -152,7 +150,7 @@ export default function PaymentPage() {
   }, [order && order.state === "PAID"]);
 
   if (orderLoading) {
-    return <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-gray-50 to-gray-100"><CustomLoader/></div>;
+    return <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-gray-50 to-gray-100"><CustomLoader /></div>;
   }
   if (!order) {
     return <div className="min-h-screen flex items-center justify-center bg-linear-to-br from-gray-50 to-gray-100"><div className="bg-white rounded-xl shadow-lg p-8 max-w-md text-red-600 text-center">Order not found.</div></div>;
@@ -179,7 +177,7 @@ export default function PaymentPage() {
           {order.state === "CREATED" ? "Complete Payment" : "Verify Payment"}
         </h1>
 
-        {order.state === "CREATED" && (
+        {order.state === "CREATED" && !clientSecret && (
           <div className="mb-6 space-y-3">
             <div className="flex flex-col gap-3">
               {METHODS.map((m) => (
@@ -199,24 +197,38 @@ export default function PaymentPage() {
           </div>
         )}
 
+        {clientSecret && (
+          <div className="mb-6">
+            <Elements stripe={stripePromise} options={{ clientSecret }}>
+              <StripePaymentForm
+                onSuccess={handleStripeSuccess}
+                onError={(msg) => setError(msg)}
+              />
+            </Elements>
+          </div>
+        )}
+
         {error && <div className="mb-4 text-red-600 text-center font-semibold bg-red-50 rounded p-2">{error}</div>}
 
-        <button
-          onClick={handlePay}
-          disabled={loading || (order.state === "CREATED" && !method)}
-          className={`w-full py-3 rounded-lg font-bold text-lg transition-all duration-200
-            ${order.state === "CREATED"
-              ? "bg-linear-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white"
-              : "bg-linear-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white"}
-            disabled:opacity-50 disabled:cursor-not-allowed`}
-        >
-          {loading
-            ? "Processing..."
-            : order.state === "CREATED"
-            ? "Pay Now"
-            : "Verify Payment"}
-        </button>
+        {!clientSecret && (
+          <button
+            onClick={order.state === "CREATED" ? handleStartPayment : () => order.payment && handleVerify(order.payment.id, order.payment.gatewayTransactionId)}
+            disabled={loading || (order.state === "CREATED" && !method)}
+            className={`w-full py-3 rounded-lg font-bold text-lg transition-all duration-200
+              ${order.state === "CREATED"
+                ? "bg-linear-to-r from-green-600 to-green-700 hover:from-green-700 hover:to-green-800 text-white"
+                : "bg-linear-to-r from-yellow-500 to-yellow-600 hover:from-yellow-600 hover:to-yellow-700 text-white"}
+              disabled:opacity-50 disabled:cursor-not-allowed`}
+          >
+            {loading
+              ? "Processing..."
+              : order.state === "CREATED"
+                ? "Proceed to Payment"
+                : "Verify Previous Payment"}
+          </button>
+        )}
       </div>
+
     </div>
   );
 }

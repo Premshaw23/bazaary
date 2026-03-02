@@ -40,7 +40,7 @@ export default async function ProductDetailPage({ params }: Props) {
       try {
         const decoded: any = jwtDecode(accessToken);
         userRole = decoded.role || null;
-      } catch {}
+      } catch { }
     }
   } catch {
     notFound();
@@ -95,11 +95,10 @@ export default async function ProductDetailPage({ params }: Props) {
                     {product.catalog.images.map((img, idx) => (
                       <div
                         key={img.url + idx}
-                        className={`shrink-0 w-24 h-24 rounded-2xl overflow-hidden border-3 cursor-pointer transition-all duration-300 ${
-                          img.isPrimary
+                        className={`shrink-0 w-24 h-24 rounded-2xl overflow-hidden border-3 cursor-pointer transition-all duration-300 ${img.isPrimary
                             ? "border-blue-500 ring-4 ring-blue-200 shadow-lg scale-105"
                             : "border-slate-200 hover:border-blue-400 hover:shadow-md"
-                        }`}
+                          }`}
                       >
                         <img
                           src={img.url}
@@ -213,9 +212,8 @@ export default async function ProductDetailPage({ params }: Props) {
                     ([key, value], idx) => (
                       <div
                         key={key}
-                        className={`flex border-b last:border-b-0 hover:bg-slate-50 transition-colors ${
-                          idx % 2 === 0 ? "md:border-r" : "md:border-r-0"
-                        }`}
+                        className={`flex border-b last:border-b-0 hover:bg-slate-50 transition-colors ${idx % 2 === 0 ? "md:border-r" : "md:border-r-0"
+                          }`}
                       >
                         <div className="w-1/2 py-5 px-8 bg-linear-to-r from-slate-50 to-slate-100 font-bold text-slate-800">
                           {key}
@@ -272,114 +270,91 @@ export default async function ProductDetailPage({ params }: Props) {
           </h2>
 
           {listings.length === 0 ? (
-            <div className="bg-white rounded-2xl p-16 border-2 border-slate-200 text-center shadow-xl">
-              <Package className="w-20 h-20 text-slate-300 mx-auto mb-6" />
-              <p className="text-slate-500 text-xl font-medium">
-                No sellers currently offering this product.
+            <div className="glass p-20 rounded-[3rem] text-center border-white/40 shadow-2xl">
+              <Package className="w-24 h-24 text-slate-200 mx-auto mb-8 animate-pulse" />
+              <p className="text-slate-400 text-2xl font-display font-black tracking-tight">
+                Market currently closed for this asset.
               </p>
             </div>
           ) : (
-            <div className="grid grid-cols-1 gap-6">
+            <div className="grid grid-cols-1 gap-8">
               {listings.map((listing: any) => (
                 <div
                   key={listing.id}
-                  className="bg-white rounded-2xl border-2 border-slate-200 shadow-lg hover:shadow-2xl hover:border-blue-300 transition-all duration-300 overflow-hidden group"
+                  className="premium-card group relative p-0 overflow-hidden bg-white/40 backdrop-blur-xl border-white/20"
                 >
-                  <div className="p-8">
-                    <div className="flex flex-col lg:flex-row lg:items-center lg:justify-between gap-6">
-                      {/* Seller Info */}
-                      <div className="flex-1 space-y-4">
-                        <div className="flex items-center gap-4">
-                          <div className="w-16 h-16 rounded-2xl bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-black text-2xl shadow-lg group-hover:scale-110 transition-transform">
-                            {listing.seller.businessName.charAt(0).toUpperCase()}
-                          </div>
-                          <div>
-                            <h3 className="font-bold text-xl text-slate-900">
-                              {listing.seller.businessName}
-                            </h3>
-                            <div className="flex items-center gap-2 text-xs text-slate-500 mt-1">
-                              <span className="font-mono bg-slate-100 px-2 py-1 rounded">
-                                ID: {listing.seller.id.slice(0, 8)}
-                              </span>
-                            </div>
-                          </div>
+                  <div className="p-10 flex flex-col lg:flex-row lg:items-center gap-12">
+                    {/* Seller Profile */}
+                    <div className="flex items-center gap-8 lg:w-1/3">
+                      <div className="relative">
+                        <div className="w-24 h-24 rounded-4xl bg-slate-950 flex items-center justify-center text-white font-display font-black text-3xl shadow-[0_15px_30px_-5px_rgba(0,0,0,0.3)] group-hover:scale-105 group-hover:rotate-2 transition-all duration-700">
+                          {listing.seller.businessName.charAt(0).toUpperCase()}
                         </div>
-
-                        <div className="flex flex-wrap items-center gap-3">
-                          {/* Stock Status */}
-                          <div className={`flex items-center gap-2 px-4 py-2 rounded-xl font-semibold ${
-                            listing.stockQuantity > 0
-                              ? "bg-green-50 border-2 border-green-200"
-                              : "bg-red-50 border-2 border-red-200"
-                          }`}>
-                            {listing.stockQuantity > 0 ? (
-                              <>
-                                <CheckCircle className="w-5 h-5 text-green-600" />
-                                <span className="text-sm text-green-700">
-                                  In Stock ({listing.stockQuantity})
-                                </span>
-                              </>
-                            ) : (
-                              <>
-                                <XCircle className="w-5 h-5 text-red-600" />
-                                <span className="text-sm text-red-700">
-                                  Out of Stock
-                                </span>
-                              </>
-                            )}
-                          </div>
-
-                          {/* Additional Info */}
-                          {listing.condition && (
-                            <span className="flex items-center gap-1 text-xs bg-slate-100 px-3 py-2 rounded-xl text-slate-700 font-semibold border border-slate-200">
-                              <Package className="w-3 h-3" />
-                              {listing.condition}
-                            </span>
-                          )}
-                          {listing.warrantyMonths && (
-                            <span className="flex items-center gap-1 text-xs bg-blue-50 px-3 py-2 rounded-xl text-blue-700 font-semibold border border-blue-200">
-                              <Shield className="w-3 h-3" />
-                              {listing.warrantyMonths}mo warranty
-                            </span>
-                          )}
-                          {listing.returnWindowDays && (
-                            <span className="flex items-center gap-1 text-xs bg-purple-50 px-3 py-2 rounded-xl text-purple-700 font-semibold border border-purple-200">
-                              <RefreshCw className="w-3 h-3" />
-                              {listing.returnWindowDays}d returns
-                            </span>
-                          )}
+                        <div className="absolute -bottom-2 -right-2 w-8 h-8 bg-green-500 rounded-full border-4 border-white flex items-center justify-center text-white shadow-lg">
+                          <CheckCircle size={14} fill="currentColor" />
                         </div>
                       </div>
-
-                      {/* Price & Action */}
-                      <div className="flex items-center gap-6 lg:flex-col lg:items-end">
-
-                        <div className="text-right">
-                          <p className="text-sm text-slate-500 mb-1 font-medium">Price</p>
-                          <div className="flex flex-col items-end">
-                            <div className="flex items-baseline gap-2">
-                              <span className="text-4xl font-black bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
-                                ₹{listing.price.toLocaleString()}
-                              </span>
-                              {listing.compareAtPrice && Number(listing.compareAtPrice) > Number(listing.price) && (
-                                <span className="text-lg text-slate-400 line-through font-semibold">
-                                  ₹{Number(listing.compareAtPrice).toLocaleString()}
-                                </span>
-                              )}
-                            </div>
-                            {listing.compareAtPrice && Number(listing.compareAtPrice) > Number(listing.price) && (
-                              <span className="text-green-600 text-sm font-bold mt-1">
-                                {Math.round(((Number(listing.compareAtPrice) - Number(listing.price)) / Number(listing.compareAtPrice)) * 100)}% OFF
-                              </span>
-                            )}
-                          </div>
+                      <div className="space-y-2">
+                        <h3 className="text-2xl font-display font-black text-slate-950 leading-tight">
+                          {listing.seller.businessName}
+                        </h3>
+                        <div className="flex flex-wrap gap-2 text-[10px] uppercase font-black tracking-widest text-slate-400">
+                          <span className="flex items-center gap-1 bg-slate-950/5 px-3 py-1.5 rounded-full border border-slate-950/5">
+                            <Award size={12} className="text-brand-600" />
+                            Top Vetted
+                          </span>
+                          <span className="flex items-center gap-1 bg-slate-950/5 px-3 py-1.5 rounded-full border border-slate-950/5">
+                            <Shield size={12} className="text-indigo-600" />
+                            Secured
+                          </span>
                         </div>
+                      </div>
+                    </div>
 
-                        {userRole === "SELLER" ? (
-                          <div className="px-8 py-4 bg-slate-100 text-slate-500 rounded-xl border-2 border-slate-200 text-sm font-bold text-center">
-                            Sellers cannot purchase
-                          </div>
-                        ) : (
+                    {/* Listing Stats */}
+                    <div className="flex-1 grid grid-cols-2 sm:grid-cols-4 gap-6 py-6 lg:py-0 border-y lg:border-y-0 lg:border-x border-slate-100/50 px-0 lg:px-10">
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Inventory</p>
+                        <p className={`text-lg font-black ${listing.stockQuantity > 0 ? "text-slate-950" : "text-red-500"}`}>
+                          {listing.stockQuantity > 0 ? `${listing.stockQuantity} Units` : "Empty"}
+                        </p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Warranty</p>
+                        <p className="text-lg font-black text-slate-950">{listing.warrantyMonths || 12} MO</p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Condition</p>
+                        <p className="text-lg font-black text-slate-950">{listing.condition || "Pristine"}</p>
+                      </div>
+                      <div className="space-y-1">
+                        <p className="text-[10px] font-black uppercase tracking-[0.2em] text-slate-400">Ships Within</p>
+                        <p className="text-lg font-black text-slate-950">24 Hours</p>
+                      </div>
+                    </div>
+
+                    {/* Pricing & Checkout */}
+                    <div className="lg:w-1/4 flex flex-col items-center lg:items-end gap-6">
+                      <div className="text-center lg:text-right">
+                        <div className="flex items-baseline justify-center lg:justify-end gap-3 translate-y-2">
+                          {listing.compareAtPrice && Number(listing.compareAtPrice) > Number(listing.price) && (
+                            <span className="text-xl text-slate-300 line-through font-bold">
+                              ₹{Number(listing.compareAtPrice).toLocaleString()}
+                            </span>
+                          )}
+                          <span className="text-5xl font-display font-black text-slate-950 tracking-tighter">
+                            ₹{listing.price.toLocaleString()}
+                          </span>
+                        </div>
+                        <p className="text-[10px] font-black text-green-600 uppercase tracking-widest mt-2">Special Internet Pricing</p>
+                      </div>
+
+                      {userRole === "SELLER" ? (
+                        <div className="w-full py-4 bg-slate-50 text-slate-400 rounded-xl border border-slate-100 text-[10px] font-black uppercase tracking-widest text-center">
+                          Restricted for Merchants
+                        </div>
+                      ) : (
+                        <div className="w-full scale-110 translate-y-1 shadow-2xl shadow-brand-500/10 rounded-2xl overflow-hidden">
                           <AddToCartButton
                             listingId={listing.id}
                             productName={product.name}
@@ -391,14 +366,19 @@ export default async function ProductDetailPage({ params }: Props) {
                                 : undefined
                             }
                           />
-                        )}
-                      </div>
+                        </div>
+                      )}
                     </div>
                   </div>
+
+                  {/* Decorative Elements */}
+                  <div className="absolute top-0 right-0 w-32 h-32 bg-brand-500/5 blur-[60px] pointer-events-none" />
+                  <div className="absolute inset-x-0 bottom-0 h-1 bg-linear-to-r from-transparent via-brand-500/20 to-transparent scale-x-0 group-hover:scale-x-100 transition-transform duration-700" />
                 </div>
               ))}
             </div>
           )}
+
         </div>
       </div>
     </div>

@@ -9,12 +9,19 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
   constructor(private configService: ConfigService) {
     super({
       jwtFromRequest: ExtractJwt.fromExtractors([
-        (req: Request) => req?.cookies?.access_token,
+        (req: Request) => {
+          const token = req?.cookies?.access_token;
+          if (process.env.NODE_ENV === 'development') {
+            console.log(`🔍 [JwtStrategy] Cookie Token found: ${!!token}`);
+          }
+          return token;
+        },
         ExtractJwt.fromAuthHeaderAsBearerToken(),
       ]),
       ignoreExpiration: false,
       secretOrKey: configService.get<string>('JWT_SECRET') || 'your-super-secret-jwt-key-change-in-production',
     });
+
   }
 
   async validate(payload: any) {

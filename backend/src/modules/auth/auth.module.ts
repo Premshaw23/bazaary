@@ -7,16 +7,25 @@ import { AuthService } from './auth.service';
 import { UsersModule } from '../users/users.module';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { QueueModule } from '../queue/queue.module';
+import { ConfigModule, ConfigService } from '@nestjs/config';
+
 
 @Module({
   imports: [
     UsersModule,
     PassportModule,
     QueueModule,
-    JwtModule.register({
-      secret: process.env.JWT_SECRET || 'your-super-secret-jwt-key-change-in-production',
-      signOptions: { expiresIn: '7d' },
+    ConfigModule,
+
+    JwtModule.registerAsync({
+      imports: [ConfigModule],
+      inject: [ConfigService],
+      useFactory: async (configService: ConfigService) => ({
+        secret: configService.get<string>('JWT_SECRET') || 'your-super-secret-jwt-key-change-in-production',
+        signOptions: { expiresIn: '7d' },
+      }),
     }),
+
   ],
   controllers: [AuthController, MeController],
   providers: [AuthService, JwtStrategy],

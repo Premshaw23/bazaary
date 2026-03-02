@@ -3,14 +3,14 @@
 // ============================================================
 "use client";
 import WishlistButton from "@/components/WishlistButton";
-import { Package, Store, Eye } from "lucide-react";
+import { Package, Store, Eye, ChevronRight } from "lucide-react";
 import Link from "next/link";
 
 export default function ProductCard({ listing }: { listing: any }) {
   return (
-    <article className="bg-white rounded-xl shadow-md border border-slate-200 hover:shadow-xl transition-all duration-300 overflow-hidden group">
-      {/* Product Image */}
-      <div className="aspect-square bg-linear-to-br from-slate-100 to-slate-200 flex items-center justify-center p-6 relative overflow-hidden">
+    <article className="premium-card group relative p-0 overflow-hidden bg-white/50 backdrop-blur-md">
+      {/* Product Image Area */}
+      <Link href={`/products/${listing.product.id}`} className="block relative aspect-4/5 overflow-hidden bg-slate-100/50">
         {listing.product?.catalog?.images && listing.product.catalog.images.length > 0 ? (
           <img
             src={
@@ -18,76 +18,85 @@ export default function ProductCard({ listing }: { listing: any }) {
               listing.product.catalog.images[0].url
             }
             alt={listing.product.name}
-            className="w-full h-full object-contain group-hover:scale-105 transition-transform duration-300"
+            className="w-full h-full object-cover transition-transform duration-700 group-hover:scale-110"
           />
         ) : (
-          <Package className="w-20 h-20 text-slate-400" />
+          <div className="w-full h-full flex items-center justify-center">
+            <Package className="w-16 h-16 text-slate-300 animate-pulse" />
+          </div>
         )}
-        
-        {/* Wishlist Button - Top Right */}
-        <div className="absolute top-3 right-3">
-          <WishlistButton productId={listing.product.id} />
+
+        {/* Overlays */}
+        <div className="absolute inset-x-0 bottom-0 bg-linear-to-t from-slate-900/60 to-transparent p-6 opacity-0 group-hover:opacity-100 transition-opacity duration-500 flex justify-center translate-y-2 group-hover:translate-y-0">
+          <div className="btn-secondary py-2 px-6 flex items-center gap-2 text-sm shadow-2xl">
+            <Eye size={16} />
+            Quick View
+          </div>
         </div>
 
-        {/* Stock Badge - Top Left */}
-        <div className="absolute top-3 left-3">
-          <span
-            className={`px-3 py-1 rounded-full text-xs font-semibold shadow-sm ${
-              listing.stockQuantity > 0
-                ? "bg-green-100 text-green-700 border border-green-200"
-                : "bg-red-100 text-red-700 border border-red-200"
+        {/* Status Badges */}
+        <div className="absolute top-4 left-4 flex flex-col gap-2">
+          <div className={`px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-2x border-white/20 backdrop-blur-md ${listing.stockQuantity > 0
+            ? "bg-green-500/90 text-white"
+            : "bg-red-500/90 text-white"
             }`}
           >
-            {listing.stockQuantity > 0 ? "In Stock" : "Out of Stock"}
-          </span>
-        </div>
-      </div>
-
-      {/* Product Info */}
-      <div className="p-5">
-        <div className="mb-3">
-          <h2 className="text-lg font-bold text-slate-900 mb-1 line-clamp-1" title={listing.product.name}>
-            {listing.product.name}
-          </h2>
-          
-          {listing.product.brand && (
-            <span className="inline-block px-2 py-1 bg-blue-100 text-blue-700 text-xs rounded-full font-medium">
-              {listing.product.brand}
-            </span>
+            {listing.stockQuantity > 0 ? "In Stock" : "Limited"}
+          </div>
+          {listing.compareAtPrice && Number(listing.compareAtPrice) > Number(listing.price) && (
+            <div className="bg-slate-950 text-white px-4 py-1.5 rounded-full text-[10px] font-black uppercase tracking-widest shadow-2xl">
+              -{Math.round(((Number(listing.compareAtPrice) - Number(listing.price)) / Number(listing.compareAtPrice)) * 100)}%
+            </div>
           )}
         </div>
 
-        {listing.product.catalog?.shortDescription && (
-          <p className="text-sm text-slate-600 line-clamp-2 mb-3" title={listing.product.catalog.shortDescription}>
-            {listing.product.catalog.shortDescription}
-          </p>
-        )}
+        <div className="absolute top-4 right-4">
+          <WishlistButton productId={listing.product.id} />
+        </div>
+      </Link>
 
-        {/* Seller Info */}
-        {listing.seller && (
-          <div className="flex items-center gap-2 text-xs text-slate-500 mb-3 pb-3 border-b border-slate-100">
-            <Store className="w-3 h-3" />
-            <span className="font-medium text-slate-700">{listing.seller.businessName}</span>
+      {/* Product Information */}
+      <div className="p-6 space-y-4">
+        <div className="flex justify-between items-start gap-4">
+          <div className="space-y-1 flex-1">
+            <p className="text-[10px] font-black text-brand-600 uppercase tracking-widest leading-none">
+              {listing.product.brand || "Bazaary Verified"}
+            </p>
+            <h2 className="text-xl font-display font-black text-slate-950 line-clamp-1 h-7">
+              {listing.product.name}
+            </h2>
           </div>
-        )}
-
-        {/* Price & Action */}
-        <div className="flex items-center justify-between gap-3">
-          <div>
-            <div className="text-2xl font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+          <div className="text-right">
+            <span className="text-xl font-display font-black text-slate-950">
               ₹{listing.price.toLocaleString()}
-            </div>
-            <div className="text-xs text-slate-500 font-mono">ID: {listing.id.slice(0, 8)}</div>
+            </span>
+            {listing.compareAtPrice && Number(listing.compareAtPrice) > Number(listing.price) && (
+              <p className="text-xs text-slate-400 line-through font-bold">
+                ₹{Number(listing.compareAtPrice).toLocaleString()}
+              </p>
+            )}
           </div>
+        </div>
+
+        <div className="flex items-center justify-between pt-4 border-t border-slate-100/50">
+          <div className="flex items-center gap-2 group/seller cursor-pointer">
+            <div className="w-8 h-8 rounded-lg bg-slate-900/5 flex items-center justify-center text-slate-400 group-hover/seller:bg-slate-950 group-hover/seller:text-white transition-all duration-500">
+              <Store size={14} />
+            </div>
+            <span className="text-xs font-bold text-slate-500 group-hover/seller:text-slate-950 transition-colors">
+              {listing.seller.businessName}
+            </span>
+          </div>
+
           <Link
             href={`/products/${listing.product.id}`}
-            className="flex items-center gap-2 px-4 py-2 bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg font-medium text-sm transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105"
+            className="w-10 h-10 rounded-xl bg-slate-950 text-white flex items-center justify-center hover:bg-brand-600 shadow-lg shadow-slate-950/10 hover:shadow-brand-500/20 active:scale-90 transition-all duration-500"
           >
-            <Eye className="w-4 h-4" />
-            View
+            <ChevronRight size={20} />
           </Link>
         </div>
       </div>
     </article>
+
   );
 }

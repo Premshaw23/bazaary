@@ -181,48 +181,48 @@ export default function Navbar() {
       {/* Main Navbar */}
       <header
         ref={navRef}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled
-          ? "glass py-2 shadow-xl"
-          : "bg-white/10 backdrop-blur-sm border-b border-transparent py-4"
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-700 ${scrolled
+          ? "glass mt-4 mx-4 md:mx-8 rounded-2xl py-2 px-2 border-white/40 shadow-[0_20px_50px_rgba(0,0,0,0.1)]"
+          : "bg-transparent py-6"
           }`}
       >
-        <div className="max-w-7xl mx-auto px-4 md:px-8">
+        <div className="max-w-7xl mx-auto px-4">
           <nav className="flex items-center justify-between">
             {/* Logo */}
             <Link
               href="/"
               className="flex items-center gap-3 group"
             >
-              <div className="relative flex items-center justify-center">
-                <div className="w-10 h-10 rounded-xl bg-brand-600 flex items-center justify-center shadow-lg shadow-brand-500/20 group-hover:shadow-brand-500/40 transition-all duration-300 group-hover:scale-105 group-hover:rotate-3">
+              <div className="relative">
+                <div className="w-11 h-11 rounded-xl bg-slate-950 flex items-center justify-center shadow-2xl group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
                   <ShoppingBag className="text-white w-6 h-6" />
                 </div>
+                <div className="absolute -inset-2 bg-brand-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
               </div>
-              <span className="text-2xl font-display font-bold text-slate-900 group-hover:text-brand-600 transition-colors">
+              <span className="text-2xl font-display font-black text-slate-950 tracking-tighter">
                 Bazaary.
               </span>
             </Link>
 
             {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center gap-1">
+            <div className="hidden lg:flex items-center gap-2 bg-slate-900/3 p-1.5 rounded-xl border border-slate-900/5 backdrop-blur-md">
               {links.slice(0, role === "PUBLIC" ? 2 : 5).map((link) => {
                 const Icon = link.icon;
                 const isActive = pathname === link.href;
-                // Show badge only for Cart link and BUYER
                 const showCartBadge = link.href === "/cart" && role === "BUYER" && uniqueCartCount > 0;
                 return (
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`relative flex items-center gap-2 px-4 py-2 rounded-lg font-medium transition-all duration-300 ${isActive
-                      ? "bg-linear-to-r from-blue-50 to-purple-50 text-blue-700 border border-blue-200 shadow-sm"
-                      : "text-slate-600 hover:text-slate-900 hover:bg-slate-50"
+                    className={`relative flex items-center gap-2 px-5 py-2.5 rounded-lg font-bold transition-all duration-500 ${isActive
+                      ? "bg-white text-slate-950 shadow-md ring-1 ring-slate-950/5"
+                      : "text-slate-500 hover:text-slate-950 hover:bg-white/50"
                       }`}
                   >
-                    {Icon && <Icon size={18} />}
-                    <span className="text-sm">{link.label}</span>
+                    {Icon && <Icon size={16} />}
+                    <span className="text-xs uppercase tracking-widest">{link.label}</span>
                     {showCartBadge && (
-                      <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5 min-w-5 flex items-center justify-center shadow">
+                      <span className="absolute -top-1 -right-1 bg-slate-950 text-white text-[10px] font-black rounded-full w-5 h-5 flex items-center justify-center shadow-lg border-2 border-white">
                         {uniqueCartCount}
                       </span>
                     )}
@@ -230,6 +230,7 @@ export default function Navbar() {
                 );
               })}
             </div>
+
 
             {/* Desktop Auth Section */}
             <div className="hidden lg:flex items-center gap-3">
