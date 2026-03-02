@@ -110,6 +110,9 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      args:
+        - NEXT_PUBLIC_API_URL=https://bazaary.shop/api
+        - NEXT_PUBLIC_STRIPE_PUBLIC_KEY=pk_test_51T3gaK3QeKS6GKEpgXWycOfxJLzhLlcyssdW3xrj0FCkMQope0Xlg313oisWMDSoOrhH8pEdBSUmQ6l1UQ9N2wEc00CjRD4Le3
     container_name: bazaary-frontend
     restart: always
     depends_on:
