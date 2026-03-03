@@ -7,10 +7,10 @@ ENV NODE_ENV=${NODE_ENV}
 
 # Install build dependencies
 RUN apk add --no-cache \
-    python3 \
-    make \
-    g++ \
-    && ln -sf python3 /usr/bin/python
+  python3 \
+  make \
+  g++ \
+  && ln -sf python3 /usr/bin/python
 
 WORKDIR /app
 
@@ -18,7 +18,7 @@ WORKDIR /app
 COPY package*.json ./
 
 # Install all dependencies (including devDependencies for build)
-RUN npm ci --only=production && npm cache clean --force
+RUN npm ci --legacy-peer-deps && npm cache clean --force
 
 # Copy the rest of the source code
 COPY . .
