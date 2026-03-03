@@ -12,7 +12,7 @@ import SearchOverlay from "@/components/SearchOverlay";
 type NavLink = {
   href: string;
   label: string;
-  icon?: React.ComponentType<{ size?: number }>;
+  icon?: React.ComponentType<{ size?: number; className?: string }>;
 };
 
 const NAV_LINKS: Record<string, NavLink[]> = {
@@ -181,32 +181,40 @@ export default function Navbar() {
       {/* Main Navbar */}
       <header
         ref={navRef}
-        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-700 ${scrolled
-          ? "glass mt-4 mx-4 md:mx-8 rounded-2xl py-2 px-2 border-white/40 shadow-[0_20px_50px_rgba(0,0,0,0.1)]"
-          : "bg-transparent py-6"
+        className={`fixed top-0 left-0 right-0 z-50 transition-all duration-500 ${scrolled
+          ? "py-3"
+          : "py-5"
           }`}
       >
-        <div className="max-w-7xl mx-auto px-4">
-          <nav className="flex items-center justify-between">
-            {/* Logo */}
-            <Link
-              href="/"
-              className="flex items-center gap-3 group"
-            >
-              <div className="relative">
-                <div className="w-11 h-11 rounded-xl bg-slate-950 flex items-center justify-center shadow-2xl group-hover:scale-110 group-hover:rotate-3 transition-all duration-500">
-                  <ShoppingBag className="text-white w-6 h-6" />
+        <div className="mx-auto px-4 md:px-8 max-w-[1600px]">
+          <nav className={`flex items-center justify-between transition-all duration-500 p-2 ${scrolled ? 'glass rounded-2xl shadow-[0_20px_50px_rgba(0,0,0,0.1)] border-white/40' : ''
+            }`}>
+            {/* Logo Section */}
+            <div className="flex items-center flex-shrink-0 min-w-[140px]">
+              <Link
+                href="/"
+                className="flex items-center gap-2.5 group"
+              >
+                <div className="relative">
+                  <div className="w-10 h-10 rounded-xl bg-slate-950 flex items-center justify-center shadow-lg group-hover:scale-105 group-hover:rotate-3 transition-all duration-500">
+                    <ShoppingBag className="text-white w-5 h-5" />
+                  </div>
+                  <div className="absolute -inset-2 bg-brand-500/10 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
                 </div>
-                <div className="absolute -inset-2 bg-brand-500/20 blur-xl rounded-full opacity-0 group-hover:opacity-100 transition-opacity" />
-              </div>
-              <span className="text-2xl font-display font-black text-slate-950 tracking-tighter">
-                Bazaary.
-              </span>
-            </Link>
+                <span className="text-xl font-display font-black text-slate-950 tracking-tight">
+                  Bazaary.
+                </span>
+                {role !== "PUBLIC" && (
+                  <span className="hidden xl:inline-block px-2 py-0.5 rounded-md bg-slate-100 text-[10px] font-bold text-slate-500 uppercase tracking-widest border border-slate-200">
+                    {role}
+                  </span>
+                )}
+              </Link>
+            </div>
 
-            {/* Desktop Navigation */}
-            <div className="hidden lg:flex items-center gap-2 bg-slate-900/3 p-1.5 rounded-xl border border-slate-900/5 backdrop-blur-md">
-              {links.slice(0, role === "PUBLIC" ? 2 : 5).map((link) => {
+            {/* Desktop Navigation (Center) */}
+            <div className="hidden lg:flex items-center gap-1 bg-slate-100/50 p-1 rounded-xl border border-slate-200/50 backdrop-blur-sm mx-4">
+              {links.map((link) => {
                 const Icon = link.icon;
                 const isActive = pathname === link.href;
                 const showCartBadge = link.href === "/cart" && role === "BUYER" && uniqueCartCount > 0;
@@ -214,15 +222,15 @@ export default function Navbar() {
                   <Link
                     key={link.href}
                     href={link.href}
-                    className={`relative flex items-center gap-2 px-5 py-2.5 rounded-lg font-bold transition-all duration-500 ${isActive
-                      ? "bg-white text-slate-950 shadow-md ring-1 ring-slate-950/5"
-                      : "text-slate-500 hover:text-slate-950 hover:bg-white/50"
+                    className={`relative flex items-center gap-2 px-4 py-2 rounded-lg font-bold transition-all duration-300 ${isActive
+                      ? "bg-white text-slate-900 shadow-sm ring-1 ring-slate-200"
+                      : "text-slate-500 hover:text-slate-900 hover:bg-white/50"
                       }`}
                   >
-                    {Icon && <Icon size={16} />}
-                    <span className="text-xs uppercase tracking-widest">{link.label}</span>
+                    {Icon && <Icon size={14} className={isActive ? "text-brand-600" : ""} />}
+                    <span className="text-[11px] uppercase tracking-wider whitespace-nowrap">{link.label}</span>
                     {showCartBadge && (
-                      <span className="absolute -top-1 -right-1 bg-slate-950 text-white text-[10px] font-black rounded-full w-5 h-5 flex items-center justify-center shadow-lg border-2 border-white">
+                      <span className="absolute -top-1 -right-1 bg-brand-600 text-white text-[9px] font-black rounded-full w-4 h-4 flex items-center justify-center shadow-md border-2 border-white">
                         {uniqueCartCount}
                       </span>
                     )}
@@ -231,111 +239,80 @@ export default function Navbar() {
               })}
             </div>
 
-
-            {/* Desktop Auth Section */}
-            <div className="hidden lg:flex items-center gap-3">
+            {/* Desktop Actions Section (Right) */}
+            <div className="hidden lg:flex items-center gap-4 flex-shrink-0 min-w-[300px] justify-end">
               <button
                 onClick={() => setSearchOpen(true)}
-                className="hidden md:flex items-center gap-3 px-3 py-2 bg-slate-100 hover:bg-slate-200 text-slate-500 rounded-xl transition-all w-64 group border border-transparent hover:border-slate-300 focus:outline-none"
+                className="flex items-center gap-3 px-3 py-2 bg-slate-100/80 hover:bg-slate-200/80 text-slate-500 rounded-xl transition-all w-56 group border border-slate-200/50 hover:border-slate-300 focus:outline-none"
               >
-                <SearchIcon size={18} className="text-slate-400 group-hover:text-brand-600 transition-colors" />
-                <span className="text-sm font-medium">Search products...</span>
+                <SearchIcon size={16} className="text-slate-400 group-hover:text-brand-600 transition-colors" />
+                <span className="text-xs font-medium">Search products...</span>
                 <div className="flex items-center gap-1 ml-auto">
-                  <kbd className="hidden lg:inline-flex items-center justify-center h-5 px-1.5 text-[10px] font-medium text-slate-500 bg-white border border-slate-300 rounded shadow-sm">
+                  <kbd className="inline-flex items-center justify-center h-5 px-1.5 text-[10px] font-medium text-slate-400 bg-white border border-slate-200 rounded shadow-sm group-hover:text-slate-600 transition-colors">
                     ⌘K
                   </kbd>
                 </div>
-              </button>
-
-              {/* Mobile Search Icon (keep for mobile) */}
-              <button
-                onClick={() => setSearchOpen(true)}
-                className="md:hidden p-2 text-slate-600 hover:text-brand-600 hover:bg-slate-50 rounded-lg transition-colors"
-                aria-label="Search"
-              >
-                <SearchIcon className="w-5 h-5" />
               </button>
 
               {user ? (
                 <div className="relative" ref={userMenuRef}>
                   <button
                     onClick={() => setUserMenuOpen(!userMenuOpen)}
-                    className="flex items-center gap-2 px-3 py-2 rounded-lg hover:bg-slate-50 transition-all duration-300 group"
+                    className="flex items-center gap-2.5 pl-1 pr-3 py-1 bg-slate-50 hover:bg-slate-100 rounded-full border border-slate-200 transition-all duration-300 group"
                     aria-label="User menu"
                     aria-expanded={userMenuOpen}
                   >
                     <div className="relative">
-                      <div className="w-9 h-9 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-semibold text-sm border-2 border-blue-200 group-hover:border-blue-300 transition-all duration-300 group-hover:scale-105 shadow-sm">
+                      <div className="w-8 h-8 rounded-full bg-gradient-to-br from-brand-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xs ring-2 ring-white shadow-sm">
                         {getInitials(user)}
                       </div>
                     </div>
-                    <span className="text-sm font-medium text-slate-700 group-hover:text-slate-900">
+                    <span className="text-xs font-bold text-slate-700 group-hover:text-slate-950 truncate max-w-[100px]">
                       {getUserDisplayName(user)}
                     </span>
                   </button>
 
                   {userMenuOpen && (
-                    <div className="absolute right-0 mt-2 w-72 bg-white border border-slate-200 rounded-xl shadow-xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-200">
+                    <div className="absolute right-0 mt-3 w-72 bg-white border border-slate-200 rounded-2xl shadow-2xl overflow-hidden animate-in fade-in slide-in-from-top-2 duration-300">
                       {/* User Info Header */}
-                      <div className="p-4 bg-linear-to-br from-blue-50 to-purple-50 border-b border-slate-200">
-                        <div className="flex items-center gap-3">
-                          <div className="w-12 h-12 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg border-2 border-blue-200 shadow-sm">
+                      <div className="p-5 bg-gradient-to-br from-slate-50 to-slate-100 border-b border-slate-200">
+                        <div className="flex items-center gap-4">
+                          <div className="w-12 h-12 rounded-2xl bg-gradient-to-br from-brand-500 to-indigo-600 flex items-center justify-center text-white font-black text-xl shadow-lg shadow-brand-500/20">
                             {getInitials(user)}
                           </div>
                           <div className="flex-1 min-w-0">
-                            <p className="text-slate-900 font-semibold text-sm truncate">
+                            <p className="text-slate-900 font-bold text-sm truncate">
                               {getUserDisplayName(user)}
                             </p>
-                            <p className="text-slate-600 text-xs truncate mt-0.5">
+                            <p className="text-slate-500 text-xs truncate mt-0.5">
                               {user.email}
                             </p>
-                            {user.role === "ADMIN" && (
-                              <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded text-xs font-medium">
-                                <Crown size={10} />
-                                Admin
-                              </span>
-                            )}
-                            {user.role === "SELLER" && (
-                              <span className="inline-flex items-center gap-1 mt-1 px-2 py-0.5 bg-blue-100 text-blue-700 rounded text-xs font-medium">
-                                <Package size={10} />
-                                Seller
-                              </span>
-                            )}
+                            <div className="flex gap-1.5 mt-2">
+                              {user.role === "ADMIN" && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-purple-100 text-purple-700 rounded-md text-[10px] font-bold uppercase tracking-wider">
+                                  <Crown size={10} /> Admin
+                                </span>
+                              )}
+                              {user.role === "SELLER" && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-brand-100 text-brand-700 rounded-md text-[10px] font-bold uppercase tracking-wider">
+                                  <Package size={10} /> Seller
+                                </span>
+                              )}
+                              {user.role === "BUYER" && (
+                                <span className="inline-flex items-center gap-1 px-2 py-0.5 bg-blue-100 text-blue-700 rounded-md text-[10px] font-bold uppercase tracking-wider">
+                                  <ShoppingBag size={10} /> Buyer
+                                </span>
+                              )}
+                            </div>
                           </div>
                         </div>
                       </div>
 
-                      {/* Menu Items */}
-                      <div className="p-2">
-                        {links.map((link) => {
-                          const Icon = link.icon;
-                          return (
-                            <Link
-                              key={link.href}
-                              href={link.href}
-                              onClick={() => setUserMenuOpen(false)}
-                              className="flex items-center gap-3 px-3 py-2.5 text-slate-700 hover:bg-slate-50 rounded-md transition-colors text-sm"
-                            >
-                              {Icon && <Icon size={18} />}
-                              <span>{link.label}</span>
-                            </Link>
-                          );
-                        })}
-                        {/* <Link
-                          href="/settings"
-                          onClick={() => setUserMenuOpen(false)}
-                          className="flex items-center gap-3 px-3 py-2.5 text-slate-700 hover:bg-slate-50 rounded-md transition-colors text-sm"
-                        >
-                          <Settings size={18} />
-                          <span>Settings</span>
-                        </Link> */}
-                      </div>
-
                       {/* Logout */}
-                      <div className="p-2 border-t border-slate-200">
+                      <div className="p-2 border-t border-slate-200 bg-slate-50/50">
                         <button
                           onClick={handleLogout}
-                          className="flex items-center gap-3 px-3 py-2.5 text-red-600 hover:bg-red-50 rounded-md transition-colors text-sm w-full"
+                          className="flex items-center gap-3 px-4 py-3 text-red-600 hover:bg-white hover:text-red-700 rounded-xl transition-all duration-300 text-sm font-bold w-full"
                         >
                           <LogOut size={18} />
                           <span>Logout</span>
@@ -348,13 +325,13 @@ export default function Navbar() {
                 <div className="flex items-center gap-2">
                   <Link
                     href="/login"
-                    className="px-4 py-2 text-slate-600 hover:text-slate-900 font-medium text-sm transition-colors"
+                    className="px-4 py-2 text-slate-600 hover:text-slate-950 font-bold text-xs uppercase tracking-widest transition-colors"
                   >
                     Login
                   </Link>
                   <Link
                     href="/register"
-                    className="px-5 py-2 bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg font-medium text-sm transition-all duration-300 shadow-md hover:shadow-lg hover:scale-105"
+                    className="px-6 py-2.5 bg-slate-950 hover:bg-slate-800 text-white rounded-xl font-bold text-xs uppercase tracking-widest transition-all duration-300 shadow-lg shadow-slate-950/20 hover:shadow-slate-950/40 hover:-translate-y-0.5"
                   >
                     Register
                   </Link>
@@ -362,20 +339,20 @@ export default function Navbar() {
               )}
             </div>
 
-            {/* Mobile Menu Button */}
+            {/* Mobile Menu Actions */}
             <div className="lg:hidden flex items-center gap-2">
               <button
                 onClick={() => setSearchOpen(true)}
-                className="p-2 text-slate-600 hover:text-brand-600 hover:bg-slate-50 rounded-lg transition-colors"
+                className="p-2.5 text-slate-600 hover:text-brand-600 hover:bg-slate-100 rounded-xl transition-all"
               >
-                <SearchIcon size={24} />
+                <SearchIcon size={20} />
               </button>
               <button
-                className="p-2 text-slate-600 hover:text-slate-900 hover:bg-slate-50 rounded-lg transition-colors"
+                className="p-2.5 text-slate-600 hover:text-slate-950 hover:bg-slate-100 rounded-xl transition-all shadow-sm border border-slate-200"
                 onClick={() => setMobileOpen(true)}
                 aria-label="Open menu"
               >
-                <Menu size={24} />
+                <Menu size={20} />
               </button>
             </div>
           </nav>
@@ -401,7 +378,7 @@ export default function Navbar() {
         <div className="flex flex-col h-full">
           {/* Mobile Menu Header */}
           <div className="flex items-center justify-between p-4 border-b border-slate-200">
-            <span className="text-lg font-bold bg-linear-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
+            <span className="text-lg font-bold bg-gradient-to-r from-blue-600 to-purple-600 bg-clip-text text-transparent">
               Menu
             </span>
             <button
@@ -415,9 +392,9 @@ export default function Navbar() {
 
           {/* User Info (Mobile) */}
           {user && (
-            <div className="p-4 bg-linear-to-br from-blue-50 to-purple-50 border-b border-slate-200">
+            <div className="p-4 bg-gradient-to-br from-blue-50 to-purple-50 border-b border-slate-200">
               <div className="flex items-center gap-3">
-                <div className="w-12 h-12 rounded-full bg-linear-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg border-2 border-blue-200 shadow-sm">
+                <div className="w-12 h-12 rounded-full bg-gradient-to-br from-blue-500 to-purple-600 flex items-center justify-center text-white font-bold text-lg border-2 border-blue-200 shadow-sm">
                   {getInitials(user)}
                 </div>
                 <div className="flex-1 min-w-0">
@@ -455,56 +432,46 @@ export default function Navbar() {
                   key={link.href}
                   href={link.href}
                   onClick={() => setMobileOpen(false)}
-                  className={`relative flex items-center gap-3 px-4 py-3 rounded-lg font-medium transition-all duration-300 ${isActive
-                    ? "bg-linear-to-r from-blue-50 to-purple-50 text-blue-700 border border-blue-200 shadow-sm"
+                  className={`relative flex items-center gap-3 px-4 py-3.5 rounded-xl font-bold transition-all duration-300 ${isActive
+                    ? "bg-slate-900 text-white shadow-lg shadow-slate-900/20"
                     : "text-slate-600 hover:bg-slate-50"
                     }`}
                 >
-                  {Icon && <Icon size={20} />}
-                  <span>{link.label}</span>
+                  {Icon && <Icon size={20} className={isActive ? "text-white" : "text-slate-400"} />}
+                  <span className="text-sm uppercase tracking-wider">{link.label}</span>
                   {showCartBadge && (
-                    <span className="absolute -top-1 -right-1 bg-red-500 text-white text-xs font-bold rounded-full px-1.5 py-0.5 min-w-5 flex items-center justify-center shadow">
+                    <span className="absolute -top-1 -right-1 bg-brand-600 text-white text-[10px] font-black rounded-full px-1.5 py-0.5 min-w-5 flex items-center justify-center shadow-lg border-2 border-white">
                       {uniqueCartCount}
                     </span>
                   )}
                 </Link>
               );
             })}
-            {/* {user && (
-              <Link
-                href="/settings"
-                onClick={() => setMobileOpen(false)}
-                className="flex items-center gap-3 px-4 py-3 rounded-lg font-medium text-slate-600 hover:bg-slate-50 transition-all duration-300"
-              >
-                <Settings size={20} />
-                <span>Settings</span>
-              </Link>
-            )} */}
           </nav>
 
           {/* Mobile Auth Footer */}
-          <div className="p-4 border-t border-slate-200">
+          <div className="p-4 border-t border-slate-200 bg-slate-50/50">
             {user ? (
               <button
                 onClick={handleLogout}
-                className="flex items-center justify-center gap-2 w-full px-4 py-3 bg-red-50 hover:bg-red-100 text-red-600 rounded-lg font-medium transition-all duration-300 border border-red-200"
+                className="flex items-center justify-center gap-3 w-full px-4 py-4 bg-white hover:bg-red-50 text-red-600 rounded-xl font-bold text-sm transition-all duration-300 border border-slate-200 shadow-sm"
               >
                 <LogOut size={18} />
                 <span>Logout</span>
               </button>
             ) : (
-              <div className="space-y-2">
+              <div className="space-y-3">
                 <Link
                   href="/login"
                   onClick={() => setMobileOpen(false)}
-                  className="block w-full px-4 py-3 text-center text-slate-600 hover:bg-slate-50 rounded-lg font-medium transition-colors border border-slate-200"
+                  className="block w-full px-4 py-3.5 text-center text-slate-700 hover:bg-white rounded-xl font-bold text-sm uppercase tracking-widest transition-all border border-slate-200 shadow-sm"
                 >
                   Login
                 </Link>
                 <Link
                   href="/register"
                   onClick={() => setMobileOpen(false)}
-                  className="block w-full px-4 py-3 text-center bg-linear-to-r from-blue-500 to-purple-600 hover:from-blue-600 hover:to-purple-700 text-white rounded-lg font-medium transition-all duration-300 shadow-md"
+                  className="block w-full px-4 py-3.5 text-center bg-slate-950 hover:bg-slate-800 text-white rounded-xl font-bold text-sm uppercase tracking-widest transition-all duration-300 shadow-lg"
                 >
                   Register
                 </Link>

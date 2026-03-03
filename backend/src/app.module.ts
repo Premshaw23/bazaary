@@ -4,6 +4,7 @@ import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { MongooseModule } from '@nestjs/mongoose';
 import { postgresConfig, mongooseConfig } from './config/database.config';
+import { validate } from './config/env.validation';
 import { AuthModule } from './modules/auth/auth.module';
 import { UsersModule } from './modules/users/users.module';
 import { SellersModule } from './modules/sellers/sellers.module';
@@ -17,6 +18,7 @@ import { WalletsModule } from './modules/wallets/wallets.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
 import { SearchModule } from './modules/search/search.module';
 import { QueueModule } from './modules/queue/queue.module';
+import { HealthModule } from './modules/health/health.module';
 
 import { APP_INTERCEPTOR, APP_GUARD } from '@nestjs/core';
 import { LoggingInterceptor } from './common/interceptors/logging.interceptor';
@@ -31,6 +33,7 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: '.env',
+      validate,
     }),
     TypeOrmModule.forRoot(postgresConfig),
     MongooseModule.forRoot(mongooseConfig.uri),
@@ -48,6 +51,7 @@ import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
     NotificationsModule,
     SearchModule,
     QueueModule,
+    HealthModule,
   ],
   providers: [
     {

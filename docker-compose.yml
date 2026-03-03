@@ -2,25 +2,38 @@ services:
   postgres:
     image: postgres:15-alpine
     container_name: bazaary-postgres
+    restart: unless-stopped
     environment:
       POSTGRES_USER: bazaary
       POSTGRES_PASSWORD: bazaary_secret
       POSTGRES_DB: bazaary_db
+      POSTGRES_INITDB_ARGS: "--auth-host=scram-sha-256"
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./scripts/postgres-init.sh:/docker-entrypoint-initdb.d/init.sh:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U bazaary"]
+      test: ["CMD-SHELL", "pg_isready -U bazaary -d bazaary_db"]
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
     networks:
       - bazaary-network
 
   mongodb:
     image: mongo:7
     container_name: bazaary-mongodb
+    restart: unless-stopped
     environment:
       MONGO_INITDB_ROOT_USERNAME: bazaary
       MONGO_INITDB_ROOT_PASSWORD: bazaary_secret
@@ -29,20 +42,39 @@ services:
       - "27017:27017"
     volumes:
       - mongodb_data:/data/db
+      - mongodb_config:/data/configdb
     healthcheck:
       test: echo 'db.runCommand("ping").ok' | mongosh localhost:27017/test --quiet
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 40s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
     networks:
       - bazaary-network
 
   redis:
     image: redis:7-alpine
     container_name: bazaary-redis
+    restart: unless-stopped
     ports:
       - "6379:6379"
-    command: redis-server --appendonly yes
+    command: >
+      redis-server 
+      --appendonly yes 
+      --appendfsync everysec
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --save 900 1
+      --save 300 10
+      --save 60 10000
     volumes:
       - redis_data:/data
     healthcheck:
@@ -50,15 +82,26 @@ services:
       interval: 10s
       timeout: 5s
       retries: 5
+      start_period: 15s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
     networks:
       - bazaary-network
 
   minio:
-    image: minio/minio:latest
+    image: minio/minio:RELEASE.2024-03-03T17-50-39Z
     container_name: bazaary-minio
+    restart: unless-stopped
     environment:
       MINIO_ROOT_USER: bazaary
       MINIO_ROOT_PASSWORD: bazaary_secret
+      MINIO_CONSOLE_ADDRESS: ":9001"
     ports:
       - "9000:9000"
       - "9001:9001"
@@ -70,19 +113,44 @@ services:
       interval: 30s
       timeout: 20s
       retries: 3
+      start_period: 20s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
     networks:
       - bazaary-network
 
   meilisearch:
     image: getmeili/meilisearch:v1.5
     container_name: bazaary-meilisearch
+    restart: unless-stopped
     environment:
       MEILI_MASTER_KEY: bazaary_search_key
       MEILI_ENV: production
+      MEILI_HTTP_ADDR: 0.0.0.0:7700
     ports:
       - "7700:7700"
     volumes:
       - meilisearch_data:/meili_data
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:7700/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 512M
+        reservations:
+          cpus: '0.25'
+          memory: 256M
     networks:
       - bazaary-network
 
@@ -90,10 +158,13 @@ services:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      target: runner
     container_name: bazaary-backend
+    restart: unless-stopped
     env_file:
       - ./backend/.env
-    restart: always
+    environment:
+      NODE_ENV: production
     depends_on:
       postgres:
         condition: service_healthy
@@ -102,7 +173,21 @@ services:
       redis:
         condition: service_healthy
       meilisearch:
-        condition: service_started
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "const http = require('http'); const req = http.request('http://localhost:3001/api/health/live', res => process.exit(res.statusCode === 200 ? 0 : 1)); req.on('error', () => process.exit(1)); req.end();"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 60s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.5'
+          memory: 2G
+        reservations:
+          cpus: '1.0'
+          memory: 1G
     networks:
       - bazaary-network
 
@@ -110,47 +195,98 @@ services:
     build:
       context: ./frontend
       dockerfile: Dockerfile
+      target: runner
       args:
         - NEXT_PUBLIC_API_URL=https://bazaary.shop/api
         - NEXT_PUBLIC_STRIPE_PUBLIC_KEY=pk_test_51T3gaK3QeKS6GKEpgXWycOfxJLzhLlcyssdW3xrj0FCkMQope0Xlg313oisWMDSoOrhH8pEdBSUmQ6l1UQ9N2wEc00CjRD4Le3
     container_name: bazaary-frontend
-    restart: always
+    restart: unless-stopped
+    environment:
+      NODE_ENV: production
     depends_on:
-      - backend
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "node", "-e", "const http = require('http'); const req = http.request('http://localhost:3000/', res => process.exit(res.statusCode === 200 ? 0 : 1)); req.on('error', () => process.exit(1)); req.end();"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 30s
+    deploy:
+      resources:
+        limits:
+          cpus: '1.0'
+          memory: 1G
+        reservations:
+          cpus: '0.5'
+          memory: 512M
     networks:
       - bazaary-network
 
   nginx:
-    image: nginx:alpine
+    image: nginx:1.25-alpine
     container_name: bazaary-nginx
-    restart: always
+    restart: unless-stopped
     ports:
       - "80:80"
       - "443:443"
     volumes:
       - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
-      - ./certbot/conf:/etc/letsencrypt
-      - ./certbot/www:/var/www/certbot
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./certbot/conf:/etc/letsencrypt:ro
+      - ./certbot/www:/var/www/certbot:ro
+      - nginx_logs:/var/log/nginx
     depends_on:
-      - frontend
-      - backend
+      frontend:
+        condition: service_healthy
+      backend:
+        condition: service_healthy
+    healthcheck:
+      test: ["CMD", "nginx", "-t"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+      start_period: 10s
+    deploy:
+      resources:
+        limits:
+          cpus: '0.5'
+          memory: 256M
+        reservations:
+          cpus: '0.25'
+          memory: 128M
     networks:
       - bazaary-network
 
   certbot:
-    image: certbot/certbot
+    image: certbot/certbot:latest
     container_name: bazaary-certbot
     volumes:
       - ./certbot/conf:/etc/letsencrypt
       - ./certbot/www:/var/www/certbot
+    command: certonly --webroot --webroot-path=/var/www/certbot --email admin@bazaary.shop --agree-tos --no-eff-email -d bazaary.shop -d www.bazaary.shop
+    depends_on:
+      - nginx
 
 volumes:
   postgres_data:
+    driver: local
   mongodb_data:
+    driver: local
+  mongodb_config:
+    driver: local
   redis_data:
+    driver: local
   minio_data:
+    driver: local
   meilisearch_data:
+    driver: local
+  nginx_logs:
+    driver: local
 
 networks:
   bazaary-network:
     driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16

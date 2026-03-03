@@ -1,242 +1,352 @@
 "use client";
 
 import Link from 'next/link';
-import Image from 'next/image';
+import Image from 'next/image'
 import { motion } from 'framer-motion';
-import { ShoppingBag, ShieldCheck, Zap, ArrowRight, Wallet, TrendingUp, BarChart3, Users } from 'lucide-react';
+import { 
+  ShoppingBag, 
+  ShieldCheck, 
+  Zap, 
+  ArrowRight, 
+  Wallet, 
+  TrendingUp, 
+  BarChart3, 
+  Users, 
+  Star,
+  Globe,
+  Clock,
+  CreditCard,
+  CheckCircle,
+  Play,
+  Quote,
+  Award,
+  Sparkles
+} from 'lucide-react';
 
 export default function Home() {
-  const containerVariants = {
+  const fadeInUp = {
+    hidden: { opacity: 0, y: 60 },
+    visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+  };
+
+  const staggerChildren = {
     hidden: { opacity: 0 },
     visible: {
       opacity: 1,
       transition: {
-        staggerChildren: 0.1,
-        delayChildren: 0.2
+        staggerChildren: 0.2
       }
     }
   };
 
-  const itemVariants = {
-    hidden: { y: 20, opacity: 0 },
-    visible: { y: 0, opacity: 1, transition: { duration: 0.5 } }
-  };
-
   return (
-    <div className="min-h-screen relative overflow-hidden bg-white selection:bg-brand-100 selection:text-brand-700">
-      {/* Mesh Gradient Background */}
-      <div className="absolute top-0 left-0 w-full h-[1200px] pointer-events-none z-0 mesh-gradient opacity-40 blur-3xl" />
-
-      {/* Hero Section */}
-      <section className="relative pt-36 pb-24 px-4 md:px-8 max-w-7xl mx-auto z-10">
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-16 items-center text-center lg:text-left">
-          <motion.div
-            initial="hidden"
-            animate="visible"
-            variants={containerVariants}
-            className="flex flex-col space-y-10"
-          >
-            <motion.div
-              variants={itemVariants}
-              className="inline-flex items-center space-x-3 bg-slate-900/3 px-5 py-2.5 rounded-full border border-slate-900/10 w-fit mx-auto lg:mx-0 backdrop-blur-md"
-            >
-              <span className="flex h-2 w-2 rounded-full bg-brand-500 animate-pulse shadow-[0_0_10px_rgba(0,102,255,0.8)]" />
-              <span className="text-xs font-black text-slate-900 uppercase tracking-[0.2em]">The Bazaary Engine v2.0</span>
-            </motion.div>
-
-            <motion.h1
-              variants={itemVariants}
-              className="text-6xl md:text-8xl font-display font-black leading-[0.9] text-slate-950 tracking-tighter"
-            >
-              Sell <span className="text-transparent bg-clip-text bg-linear-to-r from-brand-600 to-indigo-600">Faster</span>.<br />
-              Buy <span className="text-transparent bg-clip-text bg-linear-to-r from-indigo-600 to-brand-500">Cleaner</span>.
-            </motion.h1>
-
-            <motion.p
-              variants={itemVariants}
-              className="text-xl text-slate-500 leading-relaxed max-w-xl mx-auto lg:mx-0 font-medium"
-            >
-              The world's most advanced peer-to-peer commerce layer.
-              Real-time settlement, fraud-proof escrow, and total
-              transparency for everyone.
-            </motion.p>
-
-            <motion.div variants={itemVariants} className="flex flex-wrap justify-center lg:justify-start gap-6 pt-2">
-              <Link href="/register" className="btn-premium group text-lg px-12 py-5">
-                Explore Market <ArrowRight className="ml-3 w-5 h-5 transition-transform group-hover:translate-x-2" />
-              </Link>
-              <Link href="/about" className="btn-secondary text-lg px-12 py-5">
-                Our Vision
-              </Link>
-            </motion.div>
-
-            <motion.div variants={itemVariants} className="flex flex-col sm:flex-row items-center space-y-4 sm:space-y-0 sm:space-x-8 pt-8 border-t border-slate-100/50">
-              <div className="flex -space-x-4">
-                {[1, 2, 3, 4].map(i => (
-                  <div key={i} className="w-12 h-12 rounded-full border-4 border-white bg-slate-100 shadow-sm relative overflow-hidden group">
-                    <div className="absolute inset-0 bg-linear-to-br from-brand-50 to-brand-100 group-hover:scale-110 transition-transform" />
-                  </div>
-                ))}
-              </div>
-              <div className="text-left">
-                <p className="text-sm text-slate-900 font-bold">Trusted by 15,000+ Merchants</p>
-                <div className="flex items-center gap-1">
-                  {[1, 2, 3, 4, 5].map(i => (
-                    <div key={i} className="text-yellow-400 w-3 h-3 fill-current">★</div>
-                  ))}
-                  <span className="text-xs text-slate-400 ml-2">4.9/5 Industry Rating</span>
-                </div>
-              </div>
-            </motion.div>
-          </motion.div>
-
-          <motion.div
-            initial={{ opacity: 0, scale: 0.9, rotateY: 20 }}
-            animate={{ opacity: 1, scale: 1, rotateY: 0 }}
-            transition={{ duration: 1.2, ease: "easeOut" }}
-            className="relative perspective-1000 hidden lg:block"
-          >
-            <div className="absolute -inset-10 bg-brand-500/10 blur-[130px] rounded-full animate-pulse" />
-            <div className="relative glass rounded-[2.5rem] p-4 shadow-2xl border-white/40 group overflow-hidden">
-              <div className="absolute inset-0 bg-linear-to-br from-white/20 to-transparent pointer-events-none" />
-              <div className="rounded-4xl overflow-hidden shadow-inner bg-slate-50 animate-float">
-                <Image
-                  src="/images/hero.png"
-                  alt="Bazaary Premium Dashboard"
-                  width={1000}
-                  height={1000}
-                  className="w-full h-auto object-cover transform transition-transform duration-700 group-hover:scale-105"
-                  priority
-                />
-              </div>
-            </div>
-
-            {/* Floating UI Elements */}
-            <motion.div
-              animate={{ y: [0, -20, 0] }}
-              transition={{ duration: 4, repeat: Infinity, ease: "easeInOut" }}
-              className="absolute -top-10 -right-10 glass p-5 rounded-2xl shadow-2xl border-white/50 z-20 flex items-center gap-4 animate-float"
-            >
-              <div className="w-12 h-12 rounded-full bg-green-500/10 flex items-center justify-center text-green-600">
-                <TrendingUp size={24} />
-              </div>
-              <div>
-                <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Sales Today</p>
-                <p className="text-xl font-black text-slate-900">+$12,450</p>
-              </div>
-            </motion.div>
-
-            <motion.div
-              animate={{ y: [0, 20, 0] }}
-              transition={{ duration: 5, repeat: Infinity, ease: "easeInOut", delay: 0.5 }}
-              className="absolute -bottom-10 -left-10 glass p-5 rounded-2xl shadow-2xl border-white/50 z-20 flex items-center gap-4"
-            >
-              <div className="w-12 h-12 rounded-full bg-brand-500/10 flex items-center justify-center text-brand-600">
-                <Wallet size={24} />
-              </div>
-              <div>
-                <p className="text-[10px] uppercase tracking-widest text-slate-400 font-bold">Settled Payout</p>
-                <p className="text-xl font-black text-slate-900">Instant</p>
-              </div>
-            </motion.div>
-          </motion.div>
-        </div>
-      </section>
-
-      {/* Trust Bar */}
-      <div className="border-y border-slate-100 bg-slate-50/30 backdrop-blur-sm py-12 relative z-10">
-        <div className="max-w-7xl mx-auto px-8 flex flex-wrap justify-between items-center gap-8 grayscale opacity-40">
-          <span className="text-2xl font-display font-black tracking-tighter">APPLE</span>
-          <span className="text-2xl font-display font-black tracking-tighter">STRIPE</span>
-          <span className="text-2xl font-display font-black tracking-tighter">VERCEL</span>
-          <span className="text-2xl font-display font-black tracking-tighter">NESTJS</span>
-          <span className="text-2xl font-display font-black tracking-tighter">MEILI</span>
-        </div>
+    <div className="min-h-screen bg-linear-to-br from-slate-50 via-white to-blue-50/30 relative overflow-hidden">
+      {/* Background Elements */}
+      <div className="absolute top-0 left-0 w-full h-full pointer-events-none">
+        <div className="absolute top-20 left-10 w-72 h-72 bg-blue-200/20 rounded-full blur-3xl"></div>
+        <div className="absolute top-40 right-10 w-96 h-96 bg-purple-200/20 rounded-full blur-3xl"></div>
+        <div className="absolute bottom-20 left-1/3 w-80 h-80 bg-pink-200/20 rounded-full blur-3xl"></div>
       </div>
 
-      {/* Features Grid */}
-      <section className="relative py-32 px-4 md:px-8 max-w-7xl mx-auto z-10">
-        <div className="text-center mb-24 space-y-4">
-          <span className="text-brand-600 font-black text-xs uppercase tracking-[0.3em]">Built for Scale</span>
-          <h2 className="text-4xl md:text-6xl font-display font-black text-slate-950 tracking-tighter">Engineered for perfection.</h2>
-          <p className="text-slate-500 max-w-2xl mx-auto text-xl font-medium leading-relaxed italic">"Bazaary doesn't just process transactions; it builds trust at the speed of light."</p>
-        </div>
+      {/* Hero Section */}
+      <section className="relative pt-20 pb-32 px-4 md:px-8">
+        <div className="max-w-7xl mx-auto">
+          <motion.div 
+            initial="hidden"
+            animate="visible"
+            variants={staggerChildren}
+            className="text-center space-y-8"
+          >
+            {/* Badge */}
+            <motion.div variants={fadeInUp} className="inline-flex items-center gap-3 bg-white/80 backdrop-blur-sm border border-gray-200/60 px-6 py-3 rounded-full shadow-lg">
+              <div className="flex items-center gap-2">
+                <div className="w-2 h-2 bg-green-500 rounded-full animate-pulse"></div>
+                <span className="text-sm font-semibold text-gray-700">Live & Secure</span>
+              </div>
+              <div className="w-px h-4 bg-gray-300"></div>
+              <span className="text-sm text-gray-600">Trusted by 25,000+ sellers</span>
+            </motion.div>
 
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-10">
-          <FeatureCard
-            icon={<Wallet className="w-8 h-8" />}
-            title="Sovereign Wallet"
-            desc="Total control over your funds. Every transaction is immutable into our proprietary settlement ledger."
-          />
-          <FeatureCard
-            icon={<ShieldCheck className="w-8 h-8" />}
-            title="Ironclad Security"
-            desc="Enterprise-grade protection with multi-factor auth and real-time fraud detection algorithms."
-          />
-          <FeatureCard
-            icon={<Zap className="w-8 h-8" />}
-            title="Atomic Search"
-            desc="Find any product across millions of listings in under 12ms with our decentralized search nodes."
-          />
-          <FeatureCard
-            icon={<Users className="w-8 h-8" />}
-            title="Global Network"
-            desc="Expand your reach to 190+ countries with localized currency support and instant tax calc."
-          />
+            {/* Main Heading */}
+            <motion.h1 variants={fadeInUp} className="text-5xl md:text-7xl lg:text-8xl font-bold text-gray-900 leading-tight tracking-tight">
+              The Future of
+              <br />
+              <span className="text-transparent bg-clip-text bg-linear-to-r from-blue-600 via-purple-600 to-blue-600 animate-gradient">
+                E-Commerce
+              </span>
+            </motion.h1>
+
+            {/* Subtitle */}
+            <motion.p variants={fadeInUp} className="text-xl md:text-2xl text-gray-600 max-w-3xl mx-auto leading-relaxed">
+              Build, sell, and scale your business with our powerful marketplace platform. 
+              <span className="text-gray-900 font-semibold"> Zero setup fees, instant payouts.</span>
+            </motion.p>
+
+            {/* CTA Buttons */}
+            <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-8">
+              <Link 
+                href="/register" 
+                className="group bg-blue-600 hover:bg-blue-700 text-white px-8 py-4 rounded-2xl font-semibold text-lg flex items-center gap-3 transition-all duration-300 shadow-xl shadow-blue-600/25 hover:shadow-2xl hover:shadow-blue-600/40 hover:-translate-y-1"
+              >
+                Start Selling Today
+                <ArrowRight className="group-hover:translate-x-1 transition-transform" size={20} />
+              </Link>
+              
+              <Link 
+                href="/products" 
+                className="group bg-white/80 backdrop-blur-sm hover:bg-white border-2 border-gray-200/60 hover:border-gray-300 text-gray-700 px-8 py-4 rounded-2xl font-semibold text-lg flex items-center gap-3 transition-all duration-300 shadow-lg hover:shadow-xl hover:-translate-y-1"
+              >
+                <Play size={18} />
+                Browse Products
+              </Link>
+            </motion.div>
+
+            {/* Stats Bar */}
+            <motion.div variants={fadeInUp} className="grid grid-cols-2 md:grid-cols-4 gap-8 pt-16 max-w-4xl mx-auto">
+              <div className="text-center">
+                <div className="text-3xl md:text-4xl font-bold text-gray-900">25K+</div>
+                <div className="text-sm text-gray-600 mt-1">Active Sellers</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl md:text-4xl font-bold text-gray-900">$2.4M+</div>
+                <div className="text-sm text-gray-600 mt-1">Sales Volume</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl md:text-4xl font-bold text-gray-900">98.7%</div>
+                <div className="text-sm text-gray-600 mt-1">Satisfaction</div>
+              </div>
+              <div className="text-center">
+                <div className="text-3xl md:text-4xl font-bold text-gray-900">24/7</div>
+                <div className="text-sm text-gray-600 mt-1">Support</div>
+              </div>
+            </motion.div>
+          </motion.div>
         </div>
       </section>
 
-      {/* CTA Section */}
-      <section className="py-32 px-4 md:px-8 relative z-10">
-        <div className="max-w-6xl mx-auto glass p-16 md:p-24 rounded-[3.5rem] text-center space-y-12 relative overflow-hidden group">
-          <div className="absolute top-0 right-0 w-[500px] h-[500px] bg-brand-600/10 blur-[150px] -mr-64 -mt-64 group-hover:bg-brand-600/20 transition-colors duration-1000" />
-          <div className="absolute bottom-0 left-0 w-[500px] h-[500px] bg-indigo-600/5 blur-[150px] -ml-64 -mb-64" />
+      {/* Features Section */}
+      <section className="py-24 px-4 md:px-8 bg-white/60 backdrop-blur-sm">
+        <div className="max-w-7xl mx-auto">
+          <motion.div 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={staggerChildren}
+            className="text-center mb-16"
+          >
+            <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 bg-blue-100 text-blue-700 px-4 py-2 rounded-full text-sm font-semibold mb-6">
+              <Sparkles size={16} />
+              Platform Features
+            </motion.div>
+            <motion.h2 variants={fadeInUp} className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              Everything you need to succeed
+            </motion.h2>
+            <motion.p variants={fadeInUp} className="text-xl text-gray-600 max-w-2xl mx-auto">
+              From powerful analytics to secure payments, we've built all the tools you need to grow your business.
+            </motion.p>
+          </motion.div>
 
-          <h2 className="text-5xl md:text-7xl font-display font-black text-slate-950 tracking-tight leading-none">
-            Join the elite circle <br /> of digital merchants.
-          </h2>
-          <p className="text-2xl text-slate-500 font-medium max-w-2xl mx-auto leading-relaxed">
-            The era of slow, expensive marketplaces is over.
-            Welcome to the future of Bazaary.
-          </p>
-          <div className="flex flex-col sm:flex-row justify-center gap-6">
-            <Link href="/register" className="btn-premium px-16 py-6 text-xl shadow-2xl shadow-brand-500/20">
-              Go Live Now
-            </Link>
-            <Link href="/login" className="btn-secondary px-16 py-6 text-xl">
-              Member Sign In
-            </Link>
-          </div>
+          <motion.div 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={staggerChildren}
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"
+          >
+            <FeatureCard 
+              icon={<Zap className="w-8 h-8" />}
+              title="Lightning Fast"
+              description="Search through millions of products in milliseconds with our advanced AI-powered search engine."
+              color="yellow"
+            />
+            
+            <FeatureCard 
+              icon={<ShieldCheck className="w-8 h-8" />}
+              title="Bank-Level Security"
+              description="Your transactions are protected with military-grade encryption and fraud detection systems."
+              color="green"
+            />
+            
+            <FeatureCard 
+              icon={<CreditCard className="w-8 h-8" />}
+              title="Instant Payouts"
+              description="Get paid immediately after each sale with our real-time payment processing system."
+              color="blue"
+            />
+            
+            <FeatureCard 
+              icon={<Globe className="w-8 h-8" />}
+              title="Global Reach"
+              description="Sell to customers worldwide with support for 150+ currencies and local payment methods."
+              color="purple"
+            />
+            
+            <FeatureCard 
+              icon={<BarChart3 className="w-8 h-8" />}
+              title="Advanced Analytics"
+              description="Track your performance with detailed insights, sales forecasting, and customer behavior analysis."
+              color="red"
+            />
+            
+            <FeatureCard 
+              icon={<Clock className="w-8 h-8" />}
+              title="24/7 Support"
+              description="Get help whenever you need it with our round-the-clock customer support team."
+              color="indigo"
+            />
+          </motion.div>
         </div>
       </section>
 
+      {/* Success Stories Section */}
+      <section className="py-24 px-4 md:px-8">
+        <div className="max-w-7xl mx-auto">
+          <motion.div 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={staggerChildren}
+            className="text-center mb-16"
+          >
+            <motion.div variants={fadeInUp} className="inline-flex items-center gap-2 bg-green-100 text-green-700 px-4 py-2 rounded-full text-sm font-semibold mb-6">
+              <Award size={16} />
+              Success Stories
+            </motion.div>
+            <motion.h2 variants={fadeInUp} className="text-4xl md:text-5xl font-bold text-gray-900 mb-6">
+              Loved by entrepreneurs worldwide
+            </motion.h2>
+          </motion.div>
+
+          <motion.div 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, margin: "-100px" }}
+            variants={staggerChildren}
+            className="grid grid-cols-1 md:grid-cols-3 gap-8"
+          >
+            <TestimonialCard 
+              quote="Bazaary helped me scale from $10K to $500K in revenue in just 8 months. The analytics dashboard is incredible!"
+              author="Sarah Chen"
+              role="Fashion Entrepreneur"
+              rating={5}
+            />
+            
+            <TestimonialCard 
+              quote="The instant payout feature changed everything for my cash flow. No more waiting weeks for payments."
+              author="Marcus Rodriguez"
+              role="Electronics Seller"
+              rating={5}
+            />
+            
+            <TestimonialCard 
+              quote="Customer support is phenomenal. They helped me set up my store in less than 30 minutes."
+              author="Emily Johnson"
+              role="Handmade Crafts"
+              rating={5}
+            />
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Final CTA Section */}
+      <section className="py-24 px-4 md:px-8 bg-linear-to-r from-blue-600 to-purple-700 text-white">
+        <div className="max-w-4xl mx-auto text-center">
+          <motion.div 
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true }}
+            variants={staggerChildren}
+            className="space-y-8"
+          >
+            <motion.h2 variants={fadeInUp} className="text-4xl md:text-6xl font-bold leading-tight">
+              Ready to transform your business?
+            </motion.h2>
+            <motion.p variants={fadeInUp} className="text-xl md:text-2xl text-blue-100 max-w-2xl mx-auto">
+              Join thousands of successful sellers who've already made the switch to Bazaary.
+            </motion.p>
+            <motion.div variants={fadeInUp} className="flex flex-col sm:flex-row gap-4 justify-center items-center pt-8">
+              <Link 
+                href="/register" 
+                className="bg-white text-blue-600 hover:text-blue-700 px-8 py-4 rounded-2xl font-bold text-lg transition-all duration-300 hover:scale-105 shadow-xl"
+              >
+                Get Started Free
+              </Link>
+              <Link 
+                href="/contact" 
+                className="border-2 border-white/30 hover:border-white text-white hover:bg-white/10 px-8 py-4 rounded-2xl font-semibold text-lg transition-all duration-300"
+              >
+                Talk to Sales
+              </Link>
+            </motion.div>
+          </motion.div>
+        </div>
+      </section>
+
+      {/* Footer */}
       <Footer />
     </div>
-
   );
 }
 
-function FeatureCard({ icon, title, desc }: { icon: React.ReactNode; title: string; desc: string }) {
+function FeatureCard({ icon, title, description, color }: { 
+  icon: React.ReactNode; 
+  title: string; 
+  description: string; 
+  color: string; 
+}) {
+  const colorClasses = {
+    blue: 'from-blue-500/10 to-blue-600/10 text-blue-600 group-hover:from-blue-500 group-hover:to-blue-600',
+    green: 'from-green-500/10 to-green-600/10 text-green-600 group-hover:from-green-500 group-hover:to-green-600',
+    purple: 'from-purple-500/10 to-purple-600/10 text-purple-600 group-hover:from-purple-500 group-hover:to-purple-600',
+    yellow: 'from-yellow-500/10 to-yellow-600/10 text-yellow-600 group-hover:from-yellow-500 group-hover:to-yellow-600',
+    red: 'from-red-500/10 to-red-600/10 text-red-600 group-hover:from-red-500 group-hover:to-red-600',
+    indigo: 'from-indigo-500/10 to-indigo-600/10 text-indigo-600 group-hover:from-indigo-500 group-hover:to-indigo-600',
+  };
+
   return (
     <motion.div
-      whileHover={{ y: -5 }}
-      className="premium-card group"
+      variants={{
+        hidden: { opacity: 0, y: 60 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+      }}
+      whileHover={{ y: -8, transition: { duration: 0.2 } }}
+      className="group bg-white/70 backdrop-blur-sm border border-gray-200/60 rounded-3xl p-8 hover:shadow-2xl transition-all duration-300 hover:border-gray-300/60"
     >
-      <div className="w-14 h-14 rounded-2xl bg-brand-50 flex items-center justify-center mb-6 transition-colors group-hover:bg-brand-600 group-hover:text-white">
+      <div className={`w-16 h-16 rounded-2xl bg-linear-to-br ${colorClasses[color as keyof typeof colorClasses]} flex items-center justify-center mb-6 transition-all duration-300 group-hover:text-white group-hover:scale-110`}>
         {icon}
       </div>
-      <h3 className="text-xl font-bold text-slate-900 mb-3">{title}</h3>
-      <p className="text-slate-500 leading-relaxed">{desc}</p>
+      <h3 className="text-2xl font-bold text-gray-900 mb-4 group-hover:text-gray-800 transition-colors">{title}</h3>
+      <p className="text-gray-600 leading-relaxed group-hover:text-gray-700 transition-colors">{description}</p>
     </motion.div>
   );
 }
 
-function StatItem({ label, value }: { label: string; value: string }) {
+function TestimonialCard({ quote, author, role, rating }: {
+  quote: string;
+  author: string;
+  role: string;
+  rating: number;
+}) {
   return (
-    <div className="space-y-2">
-      <div className="text-4xl md:text-5xl font-display font-black text-white">{value}</div>
-      <div className="text-sm font-medium text-slate-400 uppercase tracking-widest">{label}</div>
-    </div>
+    <motion.div
+      variants={{
+        hidden: { opacity: 0, y: 60 },
+        visible: { opacity: 1, y: 0, transition: { duration: 0.6 } }
+      }}
+      className="bg-white/80 backdrop-blur-sm border border-gray-200/60 rounded-3xl p-8 hover:shadow-xl transition-all duration-300"
+    >
+      <div className="flex items-center gap-1 mb-6">
+        {Array.from({ length: rating }).map((_, i) => (
+          <Star key={i} className="w-5 h-5 fill-yellow-400 text-yellow-400" />
+        ))}
+      </div>
+      <Quote className="w-8 h-8 text-gray-300 mb-4" />
+      <p className="text-gray-700 leading-relaxed mb-6 italic">{quote}</p>
+      <div>
+        <div className="font-semibold text-gray-900">{author}</div>
+        <div className="text-sm text-gray-500">{role}</div>
+      </div>
+    </motion.div>
   );
 }
 
@@ -245,31 +355,31 @@ function Footer() {
     <footer className="w-full border-t border-slate-100 bg-white py-12 px-4 md:px-8">
       <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12">
         <div className="col-span-1 md:col-span-2 space-y-6">
-          <h2 className="text-2xl font-display font-bold text-brand-600">Bazaary.</h2>
+          <h2 className="text-2xl font-bold text-blue-600">Bazaary.</h2>
           <p className="text-slate-500 max-w-sm">The world's most advanced e-commerce engine for modern creators and established businesses alike.</p>
         </div>
         <div>
           <h4 className="font-bold mb-4">Platform</h4>
           <ul className="space-y-2 text-slate-500">
-            <li><Link href="/about" className="hover:text-brand-600">About Us</Link></li>
-            <li><Link href="/features" className="hover:text-brand-600">Features</Link></li>
-            <li><Link href="/pricing" className="hover:text-brand-600">Pricing</Link></li>
+            <li><Link href="/about" className="hover:text-blue-600">About Us</Link></li>
+            <li><Link href="/features" className="hover:text-blue-600">Features</Link></li>
+            <li><Link href="/pricing" className="hover:text-blue-600">Pricing</Link></li>
           </ul>
         </div>
         <div>
           <h4 className="font-bold mb-4">Support</h4>
           <ul className="space-y-2 text-slate-500">
-            <li><Link href="/contact" className="hover:text-brand-600">Contact</Link></li>
-            <li><Link href="/docs" className="hover:text-brand-600">API Docs</Link></li>
-            <li><a href="mailto:support@bazaary.com" className="hover:text-brand-600">support@bazaary.com</a></li>
+            <li><Link href="/contact" className="hover:text-blue-600">Contact</Link></li>
+            <li><Link href="/docs" className="hover:text-blue-600">API Docs</Link></li>
+            <li><a href="mailto:support@bazaary.com" className="hover:text-blue-600">support@bazaary.com</a></li>
           </ul>
         </div>
       </div>
       <div className="max-w-7xl mx-auto mt-12 pt-8 border-t border-slate-50 flex flex-col md:flex-row justify-between items-center text-slate-400 text-sm">
         <p>&copy; {new Date().getFullYear()} Bazaary Inc. All rights reserved.</p>
         <div className="flex space-x-6 mt-4 md:mt-0">
-          <Link href="/privacy" className="hover:text-brand-600">Privacy Policy</Link>
-          <Link href="/terms" className="hover:text-brand-600">Terms of Service</Link>
+          <Link href="/privacy" className="hover:text-blue-600">Privacy Policy</Link>
+          <Link href="/terms" className="hover:text-blue-600">Terms of Service</Link>
         </div>
       </div>
     </footer>
