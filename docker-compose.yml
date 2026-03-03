@@ -165,6 +165,7 @@ services:
       - MINIO_ENDPOINT=minio
       - MEILISEARCH_HOST=http://meilisearch:7700
       - MEILI_HOST=http://meilisearch:7700
+      - MEILISEARCH_API_KEY=bazaary_search_key
       - FRONTEND_URL=https://bazaary.shop
     depends_on:
       postgres:
@@ -178,11 +179,11 @@ services:
       minio:
         condition: service_started
     healthcheck:
-      test: ["CMD", "node", "-e", "const http = require('http'); const req = http.request('http://localhost:3001/api/health/live', res => process.exit(res.statusCode === 200 ? 0 : 1)); req.on('error', () => process.exit(1)); req.end();"]
-      interval: 30s
-      timeout: 10s
-      retries: 3
-      start_period: 60s
+      test: ["CMD-SHELL", "wget -qO- http://localhost:3001/api/health/live || exit 1"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 90s
     deploy:
       resources:
         limits:
